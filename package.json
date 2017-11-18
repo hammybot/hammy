@@ -1,0 +1,26 @@
+{
+  "name": "apollo",
+  "version": "0.0.1",
+  "description": "music streaming bot for discord",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moosebot/apollo.git"
+  },
+  "keywords": [
+    "bot",
+    "streaming",
+    "music",
+    "discord",
+    "node"
+  ],
+  "author": "moosebot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/moosebot/apollo/issues"
+  },
+  "homepage": "https://github.com/moosebot/apollo#readme"
+}
