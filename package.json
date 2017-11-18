@@ -2,8 +2,9 @@
   "name": "apollo",
   "version": "0.0.1",
   "description": "music streaming bot for discord",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,5 +23,10 @@
   "bugs": {
     "url": "https://github.com/moosebot/apollo/issues"
   },
-  "homepage": "https://github.com/moosebot/apollo#readme"
+  "homepage": "https://github.com/moosebot/apollo#readme",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "dotenv": "^4.0.0",
+    "node-opus": "^0.2.7"
+  }
 }
