@@ -6,7 +6,9 @@ Environment.config();
 
 const ytRegex = /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/;
 
-const client = new Discord.Client();
+const client = new Discord.Client({
+    disabledEvents: ["TYPING_START"]
+});
 
 const token = process.env.APOLLO_DISCORD_TOKEN;
 
