@@ -1,21 +1,21 @@
 const createYoutubeStream = require('ytdl-core');
 const commands = require('../utils/commands');
 
-const playYoutube = message => {
-    var ytUrl = message.content.match(commands.PLAY_YOUTUBE);
-    if(!ytUrl || !ytUrl[0] || !message.guild) {
+const playYoutube = msg => {
+    var ytUrl = msg.content.match(commands.PLAY_YOUTUBE);
+    if(!ytUrl || !ytUrl[0] || !msg.guild) {
         return;
     }
 
-    const voiceChannel = message.member.voiceChannel;
+    const voiceChannel = msg.member.voiceChannel;
 
     if(!voiceChannel) {
-        message.reply('You need to join a voice channel first.');
+        msg.reply('You need to join a voice channel first.');
         return;
     }
 
     if(voiceChannel.connection) {
-        message.reply('I\'m already playing music!');
+        msg.reply('I\'m already playing music!');
         return;
     }
 

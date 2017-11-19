@@ -1,5 +1,5 @@
-const sendPing = message => {
-    message.channel.send(':ping_pong: Pong!');
+const sendPing = msg => {
+    msg.channel.send(':ping_pong: Pong!');
 }
 
 module.exports = {
