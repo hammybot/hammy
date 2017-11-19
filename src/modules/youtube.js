@@ -7,19 +7,26 @@ const playYoutube = message => {
         return;
     }
 
-    if(!message.member.voiceChannel) {
+    const voiceChannel = message.member.voiceChannel;
+
+    if(!voiceChannel) {
         message.reply('You need to join a voice channel first.');
         return;
     }
 
-    message.member.voiceChannel.join().then(connection => {
+    if(voiceChannel.connection) {
+        message.reply('I\'m already playing music!');
+        return;
+    }
+
+    voiceChannel.join().then(connection => {
         const stream = createYoutubeStream(ytUrl[0], { filter : 'audioonly' });
         const dispatcher = connection.playStream(stream);
         
         dispatcher.on('end', () => {
             dispatcher.end();
         
-            message.member.voiceChannel.leave();
+            voiceChannel.leave();
         });
     }).catch(console.log);
 }
