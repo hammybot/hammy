@@ -1,3 +1,5 @@
+const MESSAGES = require('../utils/messages');
+
 const pause = msg => {
     if(isValidVoiceConnection(msg)){
         msg.member.voiceChannel.connection.dispatcher.pause();
@@ -20,12 +22,12 @@ const isValidVoiceConnection = (msg) => {
     const voiceChannel = msg.member.voiceChannel;
 
     if(!voiceChannel) {
-        msg.reply('You need to join a voice channel first.');
+        msg.reply(MESSAGES.NO_VOICE_CHANNEL);
         return false;
     }
 
     if(!voiceChannel.connection || !voiceChannel.connection.dispatcher) {
-        msg.reply('I\'m not playing music!');
+        msg.reply(MESSAGES.NO_VOICE_CONNECTION);
         return false;
     }
 

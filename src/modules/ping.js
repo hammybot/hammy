@@ -1,5 +1,7 @@
+const MESSAGES = require('../utils/messages');
+
 const sendPing = msg => {
-    msg.channel.send(':ping_pong: Pong!');
+    msg.channel.send(MESSAGES.PONG);
 }
 
 module.exports = {
