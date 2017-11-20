@@ -1,4 +1,4 @@
-const MESSAGES = require('../utils/messages');
+const CONSTANTS = require('../utils/constants');
 
 const pause = msg => {
     if(isValidVoiceConnection(msg)){
@@ -22,12 +22,12 @@ const isValidVoiceConnection = (msg) => {
     const voiceChannel = msg.member.voiceChannel;
 
     if(!voiceChannel) {
-        msg.reply(MESSAGES.NO_VOICE_CHANNEL);
+        msg.reply(CONSTANTS.BOT_MESSAGES.NO_VOICE_CHANNEL);
         return false;
     }
 
     if(!voiceChannel.connection || !voiceChannel.connection.dispatcher) {
-        msg.reply(MESSAGES.NO_VOICE_CONNECTION);
+        msg.reply(CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
         return false;
     }
 

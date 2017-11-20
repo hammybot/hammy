@@ -1,7 +1,7 @@
-const MESSAGES = require('../utils/messages');
+const CONSTANTS = require('../utils/constants');
 
 const sendPing = msg => {
-    msg.channel.send(MESSAGES.PONG);
+    msg.channel.send(CONSTANTS.BOT_MESSAGES.PONG);
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 var sinon = require('sinon');
 
 const playback = require('../src/modules/media-playback');
-const MESSAGES = require('../src/utils/messages');
+const CONSTANTS = require('../src/utils/constants');
 
 const sandbox = sinon.createSandbox();
 
@@ -61,7 +61,7 @@ describe('media-playback module', () => {
 
         afterEach(() => {
             sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, MESSAGES.NO_VOICE_CHANNEL);
+            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CHANNEL);
         });
 
         it('pause fails, responds to message sender with error', () => {
@@ -85,7 +85,7 @@ describe('media-playback module', () => {
 
         afterEach(() => {
             sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, MESSAGES.NO_VOICE_CONNECTION);
+            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
         });
 
         it('pause fails, responds to message sender with error', () => {
@@ -109,7 +109,7 @@ describe('media-playback module', () => {
 
         afterEach(() => {
             sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, MESSAGES.NO_VOICE_CONNECTION);
+            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
         });
 
         it('pause fails, responds to message sender with error', () => {

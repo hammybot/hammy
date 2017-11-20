@@ -1,7 +1,7 @@
 var sinon = require('sinon');
 
 const ping = require('../src/modules/ping');
-const MESSAGES = require('../src/utils/messages');
+const CONSTANTS = require('../src/utils/constants');
 
 const sandbox = sinon.createSandbox();
 
@@ -19,7 +19,7 @@ describe('ping module', () => {
             ping.sendPing(message);
 
             sinon.assert.calledOnce(sendSpy);
-            sinon.assert.calledWith(sendSpy, MESSAGES.PONG);
+            sinon.assert.calledWith(sendSpy, CONSTANTS.BOT_MESSAGES.PONG);
         });
     });
 });
