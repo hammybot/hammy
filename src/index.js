@@ -3,7 +3,7 @@ const ping = require('./modules/ping');
 const playback = require('./modules/media-playback');
 
 const Dispatcher = require('./utils/Dispatcher');
-const CONSTANTS = require('../utils/constants');
+const CONSTANTS = require('./utils/constants');
 
 const Environment = require('dotenv');
 Environment.config();
