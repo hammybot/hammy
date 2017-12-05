@@ -1,3 +1,4 @@
+var Q = require('q');
 var sinon = require('sinon');
 
 const ping = require('../src/modules/ping');
@@ -7,11 +8,20 @@ const sandbox = sinon.createSandbox();
 
 describe('ping module', () => {
     var sendSpy,
-        message;
+        editSpy,
+        message,
+        sendDeferred;
 
     beforeEach(() => {
         sendSpy = sinon.spy();
-        message = {channel: {send: sendSpy}};
+        editSpy = sinon.spy();
+        sendDeferred = Q.defer();
+
+        message = {channel: {send: (msg) => {
+            sendSpy(msg);
+            return sendDeferred.promise
+        }}};
+        sendDeferred.resolve({edit: editSpy});
     });
 
     describe('when send ping is called', () => {
@@ -20,6 +30,9 @@ describe('ping module', () => {
 
             sinon.assert.calledOnce(sendSpy);
             sinon.assert.calledWith(sendSpy, CONSTANTS.BOT_MESSAGES.PONG);
+            setTimeout(() => {
+                sinon.assert.calledOnce(editSpy);
+            }, 100);
         });
     });
 });
