@@ -90,7 +90,7 @@ describe('youtube module', () => {
                 youtube.searchYoutube(message);
                 sinon.assert.calledOnce(youtubeClientSpy.setKey)
                 sinon.assert.calledOnce(replySpy);
-                sinon.assert.calledWith(replySpy, '"**Here are the top 5 results for your search "funky music":**\r**1)** Song 1,\r**2)** Song 2');
+                sinon.assert.calledWith(replySpy, '**Here are the top 5 results for your search "funky music":**\r**1)** Song 1,\r**2)** Song 2');
             });
         });
 
@@ -100,6 +100,13 @@ describe('youtube module', () => {
                 youtube.searchYoutube(message);
                 sinon.assert.notCalled(youtubeClientSpy.setKey)
                 sinon.assert.notCalled(replySpy);
+            });
+            
+            it('replies with error message when error',() =>{
+                youtubeClientSpy.search =  (term, length, callback) => callback({}, null);
+                youtube.searchYoutube(message);
+                sinon.assert.calledOnce(replySpy);
+                sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.ERROR_OCCURED);
             });
 
             it('doesnt have the search term', () => {

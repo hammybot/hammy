@@ -44,7 +44,9 @@ const searchYoutube = msg => {
 
     youtubeClient.search(searchTerm, numResponses, function (err, results) {
         if (err) {
-            console.log(err);
+           msg.reply(CONSTANTS.BOT_MESSAGES.ERROR_OCCURED);
+           console.error(err);
+           return;
         }
 
         let titles = results.items.map((item, index) => {
