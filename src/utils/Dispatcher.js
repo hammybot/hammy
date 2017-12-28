@@ -5,11 +5,14 @@ class Dispatcher extends EventEmitter {
     constructor() {
         super();
 
-        const token = process.env.APOLLO_DISCORD_TOKEN;
-        if(!token) {
+        const discordToken = process.env.APOLLO_DISCORD_TOKEN;
+        const googleApiToken = process.env.GOOGLE_API_KEY;
+        if(!discordToken) {
             throw new Error('Please generate a discord token and store in "APOLLO_DISCORD_TOKEN" environment file.');
         }
-
+        if(!googleApiToken) {
+            throw new Error('Please generate a google api token and store in "GOOGLE_API_KEY" environment file.');
+        }
         this.messageRecievers = [];
 
         this.client = new Discord.Client({
@@ -18,7 +21,7 @@ class Dispatcher extends EventEmitter {
 
         this.client.on('ready', () => console.log('apollo ready!'));
 
-        this.client.login(token).then((str) => {
+        this.client.login(discordToken).then((str) => {
             this.initialize();
         });
     }

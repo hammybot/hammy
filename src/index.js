@@ -34,3 +34,8 @@ messageDispatcher.register({
     regex: CONSTANTS.COMMANDS.STOP,
     callback: playback.stop
 });
+
+messageDispatcher.register({
+    regex: CONSTANTS.COMMANDS.SEARCH_YOUTUBE,
+    callback: youtube.searchYoutube
+})
