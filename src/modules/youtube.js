@@ -48,10 +48,10 @@ const searchYoutube = msg => {
         }
 
         let titles = results.items.map((item, index) => {
-            return (index + 1) + ") " + item.snippet.title;
+            return '**' + (index + 1) + ")** " + item.snippet.title;
         });
 
-        let response = 'Here are the top '+ numResponses+ ' results for your search "' + searchTerm + '":\r'
+        let response = '**Here are the top '+ numResponses+ ' results for your search "' + searchTerm + '":**\r'
 
         msg.reply(response + titles.join(',\r'))
     });
