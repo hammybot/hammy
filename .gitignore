@@ -29,3 +29,4 @@ node_modules
 
 # ignore environment configuration
 .env
+\.vscode/launch\.json
