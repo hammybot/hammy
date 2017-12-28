@@ -90,7 +90,7 @@ describe('youtube module', () => {
                 youtube.searchYoutube(message);
                 sinon.assert.calledOnce(youtubeClientSpy.setKey)
                 sinon.assert.calledOnce(replySpy);
-                sinon.assert.calledWith(replySpy, 'Here are the top 10 results for your search "funky music":\r1) Song 1,\r2) Song 2');
+                sinon.assert.calledWith(replySpy, 'Here are the top 5 results for your search "funky music":\r1) Song 1,\r2) Song 2');
             });
         });
 

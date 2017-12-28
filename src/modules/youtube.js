@@ -33,6 +33,7 @@ const playYoutube = msg => {
 }
 
 const searchYoutube = msg => {
+    const numResponses = 5;
     var matchSearch = msg.content.match(CONSTANTS.COMMANDS.SEARCH_YOUTUBE);
     if (!matchSearch || !msg.guild) {
         return;
@@ -41,7 +42,7 @@ const searchYoutube = msg => {
     let youtubeClient = new Youtube();
     youtubeClient.setKey(process.env.GOOGLE_API_KEY);
 
-    youtubeClient.search(searchTerm, 10, function (err, results) {
+    youtubeClient.search(searchTerm, numResponses, function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -50,7 +51,7 @@ const searchYoutube = msg => {
             return (index + 1) + ") " + item.snippet.title;
         });
 
-        let response = 'Here are the top 10 results for your search "' + searchTerm + '":\r'
+        let response = 'Here are the top '+ numResponses+ ' results for your search "' + searchTerm + '":\r'
 
         msg.reply(response + titles.join(',\r'))
     });
