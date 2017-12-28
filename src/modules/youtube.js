@@ -33,11 +33,11 @@ const playYoutube = msg => {
 }
 
 const searchYoutube = msg => {
-    var searchTerm = msg.content.match(CONSTANTS.COMMANDS.SEARCH_YOUTUBE)[1];
-    if (!searchTerm || !msg.guild) {
+    var matchSearch = msg.content.match(CONSTANTS.COMMANDS.SEARCH_YOUTUBE);
+    if (!matchSearch || !msg.guild) {
         return;
     }
-    debugger;
+    let searchTerm = matchSearch[1];
     let youtubeClient = new Youtube();
     youtubeClient.setKey(process.env.GOOGLE_API_KEY);
 
