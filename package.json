@@ -25,17 +25,17 @@
 	},
 	"homepage": "https://github.com/moosebot/hammy#readme",
 	"dependencies": {
-		"discord.js": "^11.2.1",
-		"node-opus": "^0.2.7",
+		"discord.js": "^11.5.1",
+		"node-opus": "^0.3.2",
 		"timer-stopwatch": "^0.2.0",
-		"youtube-node": "^1.3.2",
-		"ytdl-core": "^0.18.2"
+		"youtube-node": "^1.3.3",
+		"ytdl-core": "^0.29.3"
 	},
 	"devDependencies": {
-		"chai": "^4.1.2",
-		"mocha": "^4.0.1",
+		"chai": "^4.2.0",
+		"mocha": "^6.2.0",
 		"q": "^1.5.1",
-		"rewire": "^3.0.1",
-		"sinon": "^4.1.2"
+		"rewire": "^4.0.1",
+		"sinon": "^7.3.2"
 	}
 }
