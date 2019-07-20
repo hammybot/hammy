@@ -6,122 +6,122 @@ const CONSTANTS = require('../src/utils/constants');
 const sandbox = sinon.createSandbox();
 
 describe('media-playback module', () => {
-    var replySpy,
-        message;
+	var replySpy,
+		message;
 
-    beforeEach(() => {
-        replySpy = sinon.spy();
-        message = {member: {voiceChannel: null}, reply: replySpy};
-    });
+	beforeEach(() => {
+		replySpy = sinon.spy();
+		message = { member: { voiceChannel: null }, reply: replySpy };
+	});
 
-    describe('when bot is playing music in message sender\'s voice channel', () => {
-        var pauseSpy,
-            resumeSpy,
-            endSpy;
+	describe('when bot is playing music in message sender\'s voice channel', () => {
+		var pauseSpy,
+			resumeSpy,
+			endSpy;
 
-        beforeEach(() => {
-            pauseSpy = sinon.spy();
-            resumeSpy = sinon.spy();
-            endSpy = sinon.spy();
+		beforeEach(() => {
+			pauseSpy = sinon.spy();
+			resumeSpy = sinon.spy();
+			endSpy = sinon.spy();
 
-            const dispatcher = {pause: pauseSpy, resume: resumeSpy, end: endSpy};
-            message.member.voiceChannel = {connection: {dispatcher: dispatcher}};
-        });
+			const dispatcher = { pause: pauseSpy, resume: resumeSpy, end: endSpy };
+			message.member.voiceChannel = { connection: { dispatcher: dispatcher } };
+		});
 
-        afterEach(() => {
-            sinon.assert.notCalled(replySpy);
-        });
+		afterEach(() => {
+			sinon.assert.notCalled(replySpy);
+		});
 
-        it('pause is successful', () => {
-            playback.pause(message);
+		it('pause is successful', () => {
+			playback.pause(message);
 
-            sinon.assert.calledOnce(pauseSpy);
-            sinon.assert.notCalled(resumeSpy);
-            sinon.assert.notCalled(endSpy);
-        });
+			sinon.assert.calledOnce(pauseSpy);
+			sinon.assert.notCalled(resumeSpy);
+			sinon.assert.notCalled(endSpy);
+		});
 
-        it('resume is successful', () => {
-            playback.resume(message);
+		it('resume is successful', () => {
+			playback.resume(message);
 
-            sinon.assert.calledOnce(resumeSpy);
-            sinon.assert.notCalled(pauseSpy);
-            sinon.assert.notCalled(endSpy);
-        });
+			sinon.assert.calledOnce(resumeSpy);
+			sinon.assert.notCalled(pauseSpy);
+			sinon.assert.notCalled(endSpy);
+		});
 
-        it('stop is successful', () => {
-            playback.stop(message);
-            
-            sinon.assert.calledOnce(endSpy);
-            sinon.assert.notCalled(pauseSpy);
-            sinon.assert.notCalled(resumeSpy);
-        });
-    });
+		it('stop is successful', () => {
+			playback.stop(message);
 
-    describe('when message sender is not in a voice channel', () => {
+			sinon.assert.calledOnce(endSpy);
+			sinon.assert.notCalled(pauseSpy);
+			sinon.assert.notCalled(resumeSpy);
+		});
+	});
 
-        afterEach(() => {
-            sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CHANNEL);
-        });
+	describe('when message sender is not in a voice channel', () => {
 
-        it('pause fails, responds to message sender with error', () => {
-            playback.pause(message);
-        });
+		afterEach(() => {
+			sinon.assert.calledOnce(replySpy);
+			sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CHANNEL);
+		});
 
-        it('resume fails, responds to message sender with error', () => {
-            playback.resume(message);
-        });
+		it('pause fails, responds to message sender with error', () => {
+			playback.pause(message);
+		});
 
-        it('stop fails, responds to message sender with error', () => {
-            playback.stop(message);
-        });
-    });
+		it('resume fails, responds to message sender with error', () => {
+			playback.resume(message);
+		});
 
-    describe('when the bot is not connected to the message sender\'s voice channel', () => {
+		it('stop fails, responds to message sender with error', () => {
+			playback.stop(message);
+		});
+	});
 
-        beforeEach(() => {
-            message.member.voiceChannel = {connection: null};
-        });
+	describe('when the bot is not connected to the message sender\'s voice channel', () => {
 
-        afterEach(() => {
-            sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
-        });
+		beforeEach(() => {
+			message.member.voiceChannel = { connection: null };
+		});
 
-        it('pause fails, responds to message sender with error', () => {
-            playback.pause(message);
-        });
+		afterEach(() => {
+			sinon.assert.calledOnce(replySpy);
+			sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
+		});
 
-        it('resume fails, responds to message sender with error', () => {
-            playback.resume(message);
-        });
+		it('pause fails, responds to message sender with error', () => {
+			playback.pause(message);
+		});
 
-        it('stop fails, responds to message sender with error', () => {
-            playback.stop(message);
-        });
-    });
+		it('resume fails, responds to message sender with error', () => {
+			playback.resume(message);
+		});
 
-    describe('when the bot is not playing music in the message sender\'s voice channel', () => {
-        
-        beforeEach(() => {
-            message.member.voiceChannel = {connection: {dispatcher: null}};
-        });
+		it('stop fails, responds to message sender with error', () => {
+			playback.stop(message);
+		});
+	});
 
-        afterEach(() => {
-            sinon.assert.calledOnce(replySpy);
-            sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
-        });
+	describe('when the bot is not playing music in the message sender\'s voice channel', () => {
 
-        it('pause fails, responds to message sender with error', () => {
-            playback.pause(message);
-        });
+		beforeEach(() => {
+			message.member.voiceChannel = { connection: { dispatcher: null } };
+		});
 
-        it('resume fails, responds to message sender with error', () => {
-            playback.resume(message);
-        });
+		afterEach(() => {
+			sinon.assert.calledOnce(replySpy);
+			sinon.assert.calledWith(replySpy, CONSTANTS.BOT_MESSAGES.NO_VOICE_CONNECTION);
+		});
 
-        it('stop fails, responds to message sender with error', () => {
-            playback.stop(message);
-        });
-    });
+		it('pause fails, responds to message sender with error', () => {
+			playback.pause(message);
+		});
+
+		it('resume fails, responds to message sender with error', () => {
+			playback.resume(message);
+		});
+
+		it('stop fails, responds to message sender with error', () => {
+			playback.stop(message);
+		});
+	});
 });

@@ -5,37 +5,34 @@ const playback = require('./modules/media-playback');
 const Dispatcher = require('./utils/Dispatcher');
 const CONSTANTS = require('./utils/constants');
 
-const Environment = require('dotenv');
-Environment.config();
-
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.PING,
-    callback: ping.sendPing
+	regex: CONSTANTS.COMMANDS.PING,
+	callback: ping.sendPing
 });
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.PLAY_YOUTUBE,
-    callback: youtube.playYoutube
+	regex: CONSTANTS.COMMANDS.PLAY_YOUTUBE,
+	callback: youtube.playYoutube
 });
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.PAUSE,
-    callback: playback.pause
+	regex: CONSTANTS.COMMANDS.PAUSE,
+	callback: playback.pause
 });
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.RESUME,
-    callback: playback.resume
+	regex: CONSTANTS.COMMANDS.RESUME,
+	callback: playback.resume
 });
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.STOP,
-    callback: playback.stop
+	regex: CONSTANTS.COMMANDS.STOP,
+	callback: playback.stop
 });
 
 messageDispatcher.register({
-    regex: CONSTANTS.COMMANDS.SEARCH_YOUTUBE,
-    callback: youtube.searchYoutube
+	regex: CONSTANTS.COMMANDS.SEARCH_YOUTUBE,
+	callback: youtube.searchYoutube
 })

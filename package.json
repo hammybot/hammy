@@ -1,42 +1,41 @@
 {
-  "name": "apollo",
-  "version": "0.0.1",
-  "description": "music streaming bot for discord",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "test": "mocha tests"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/moosebot/apollo.git"
-  },
-  "keywords": [
-    "bot",
-    "streaming",
-    "music",
-    "discord",
-    "node"
-  ],
-  "author": "moosebot",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/moosebot/apollo/issues"
-  },
-  "homepage": "https://github.com/moosebot/apollo#readme",
-  "dependencies": {
-    "discord.js": "^11.2.1",
-    "dotenv": "^4.0.0",
-    "node-opus": "^0.2.7",
-    "timer-stopwatch": "^0.2.0",
-    "youtube-node": "^1.3.2",
-    "ytdl-core": "^0.18.2"
-  },
-  "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^4.0.1",
-    "q": "^1.5.1",
-    "rewire": "^3.0.1",
-    "sinon": "^4.1.2"
-  }
+	"name": "hammy",
+	"version": "0.0.1",
+	"description": "bot for discord",
+	"main": "src/index.js",
+	"scripts": {
+		"start": "node src/index.js",
+		"test": "mocha tests"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/moosebot/hammy.git"
+	},
+	"keywords": [
+		"bot",
+		"streaming",
+		"music",
+		"discord",
+		"node"
+	],
+	"author": "moosebot",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/moosebot/hammy/issues"
+	},
+	"homepage": "https://github.com/moosebot/hammy#readme",
+	"dependencies": {
+		"discord.js": "^11.2.1",
+		"node-opus": "^0.2.7",
+		"timer-stopwatch": "^0.2.0",
+		"youtube-node": "^1.3.2",
+		"ytdl-core": "^0.18.2"
+	},
+	"devDependencies": {
+		"chai": "^4.1.2",
+		"mocha": "^4.0.1",
+		"q": "^1.5.1",
+		"rewire": "^3.0.1",
+		"sinon": "^4.1.2"
+	}
 }
