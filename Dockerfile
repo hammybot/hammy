@@ -1,10 +1,8 @@
 # Install node.js
-FROM node:10.16.0
+FROM node:10.16.0-alpine
 
-# Install FFMPEG
-RUN apt-get -y update
-RUN apt-get -y upgrade
-RUN apt-get install -y ffmpeg
+# Install ffmpeg
+RUN apk update && apk upgrade && apk add ffmpeg
 
 # Create working directory
 RUN mkdir -p /bot
@@ -13,7 +11,13 @@ WORKDIR /bot
 # Install dependencies
 COPY package.json /bot
 COPY yarn.lock /bot
-RUN yarn
+RUN apk --no-cache --virtual build-dependencies add \
+	yarn \
+	python \
+	make \
+	g++ \
+	&& yarn install \
+	&& apk del build-dependencies
 
 # Build app
 COPY . /bot
