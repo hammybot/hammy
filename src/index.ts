@@ -1,9 +1,12 @@
+import { config } from 'dotenv';
+
 import { MediaPause, MediaResume, MediaStop } from './modules/media-playback';
 import { SendPing } from './modules/ping';
 import { PlayYoutube } from './modules/youtube';
 import { COMMANDS } from './utils/constants';
 import { Dispatcher } from './utils/Dispatcher';
 
+config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({

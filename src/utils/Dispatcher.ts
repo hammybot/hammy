@@ -5,7 +5,6 @@ import { MessageReceiver } from '../models/message_receiver';
 
 export class Dispatcher extends EventEmitter {
 	private _discordApiToken = process.env.DISCORD_BOT_TOKEN;
-	private _youtubeApiToken = process.env.YOUTUBE_API_KEY;
 	private _messageReceivers: Array<MessageReceiver>;
 
 	public DiscordClient: Client;
@@ -17,9 +16,6 @@ export class Dispatcher extends EventEmitter {
 
 		if (!this._discordApiToken) {
 			throw new Error('Please generate a discord token and store in "DISCORD_BOT_TOKEN" environment file.');
-		}
-		if (!this._youtubeApiToken) {
-			throw new Error('Please generate a youtube api token and store in "YOUTUBE_API_KEY" environment file.');
 		}
 
 		this.DiscordClient = new Client({

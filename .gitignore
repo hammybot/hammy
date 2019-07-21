@@ -29,3 +29,6 @@ typings/
 # System Files
 .DS_Store
 Thumbs.db
+
+# ignore environment configuration
+.env
