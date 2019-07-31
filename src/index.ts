@@ -1,35 +1,55 @@
 import { config } from 'dotenv';
 
-import { MediaPause, MediaResume, MediaStop } from './modules/media-playback';
-import { SendPing } from './modules/ping';
-import { PlayYoutube } from './modules/youtube';
-import { COMMANDS } from './utils/constants';
-import { Dispatcher } from './utils/Dispatcher';
+import {
+	MediaPause,
+	MediaResume,
+	MediaStop,
+	PlayYoutube,
+	SendPing,
+	WhatAreTheOddsChallenge
+} from './modules';
+import {
+	combineMatchers,
+	COMMANDS,
+	createContainsMatcher,
+	createRegexMatcher,
+	createUniqueMentionsMatcher,
+	Dispatcher,
+	MESSAGE_TARGETS
+} from './utils';
 
 config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
-	regex: COMMANDS.PING,
+	matcher: createRegexMatcher(COMMANDS.PING),
 	callback: SendPing
 });
 
 messageDispatcher.register({
-	regex: COMMANDS.PLAY_YOUTUBE,
+	matcher: createRegexMatcher(COMMANDS.PLAY_YOUTUBE),
 	callback: PlayYoutube
 });
 
 messageDispatcher.register({
-	regex: COMMANDS.PAUSE,
+	matcher: createRegexMatcher(COMMANDS.PAUSE),
 	callback: MediaPause
 });
 
 messageDispatcher.register({
-	regex: COMMANDS.RESUME,
+	matcher: createRegexMatcher(COMMANDS.RESUME),
 	callback: MediaResume
 });
 
 messageDispatcher.register({
-	regex: COMMANDS.STOP,
+	matcher: createRegexMatcher(COMMANDS.STOP),
 	callback: MediaStop
+});
+
+messageDispatcher.register({
+	matcher: combineMatchers(
+		createUniqueMentionsMatcher(1, true),
+		createContainsMatcher(MESSAGE_TARGETS.WATO_CHALLENGE, false)
+	),
+	callback: WhatAreTheOddsChallenge
 });

@@ -1,14 +1,13 @@
 import { Client } from 'discord.js';
 import { EventEmitter } from 'events';
 
-import { MessageReceiver } from '../models/message_receiver';
+import { MessageReceiver } from '../models/message-receiver';
 
 export class Dispatcher extends EventEmitter {
 	private _discordApiToken = process.env.DISCORD_BOT_TOKEN;
 	private _messageReceivers: Array<MessageReceiver>;
 
 	public DiscordClient: Client;
-	public BotId = '';
 
 	constructor() {
 		super();
@@ -30,17 +29,12 @@ export class Dispatcher extends EventEmitter {
 	}
 
 	initialize() {
-		this.BotId = this.DiscordClient.user.id;
-
 		this.DiscordClient.on('message', message => {
-			if (message.author.id === this.BotId) {
-				return;
-			}
-
-			console.log(`Recieved message: ${message}`);
+			// Ignore any messages from myself or other bots
+			if (message.author.id === message.client.user.id || message.author.bot) { return; }
 
 			this._messageReceivers.forEach(receiver => {
-				if (message.content.match(receiver.regex)) {
+				if (receiver.matcher(message)) {
 					receiver.callback(message);
 				}
 			});
