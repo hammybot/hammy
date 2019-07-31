@@ -6,7 +6,7 @@ import {
 	MediaStop,
 	PlayYoutube,
 	SendPing,
-	WhatAreTheOddsChallenge
+	WATOChallenge
 } from './modules';
 import {
 	combineMatchers,
@@ -51,5 +51,5 @@ messageDispatcher.register({
 		createUniqueMentionsMatcher(1, true),
 		createContainsMatcher(MESSAGE_TARGETS.WATO_CHALLENGE, false)
 	),
-	callback: WhatAreTheOddsChallenge
+	callback: WATOChallenge
 });

@@ -16,5 +16,5 @@ export const COMMANDS = {
 };
 
 export const MESSAGE_TARGETS = {
-	WATO_CHALLENGE: 'what are the odds that'
+	WATO_CHALLENGE: 'what are the odds'
 };
