@@ -45,6 +45,10 @@ export class Dispatcher extends EventEmitter {
 				}
 			});
 		});
+
+		this.DiscordClient.on('error', error => {
+			console.log(error.message);
+		});
 	}
 
 	register(receiver: MessageReceiver) {
