@@ -28,13 +28,11 @@
 	"homepage": "https://github.com/moosebot/hammy#readme",
 	"dependencies": {
 		"discord.js": "^11.5.1",
-		"dotenv": "^8.0.0",
 		"node-opus": "^0.3.2",
 		"ts-stopwatch": "^0.0.4",
 		"ytdl-core": "^0.29.3"
 	},
 	"devDependencies": {
-		"@types/dotenv": "^6.1.1",
 		"@types/node": "^12.6.8",
 		"concurrently": "^4.1.1",
 		"nodemon": "^1.19.1",

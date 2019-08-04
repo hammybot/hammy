@@ -8,7 +8,7 @@ RUN apk update && apk upgrade && apk add ffmpeg
 RUN mkdir -p /bot
 WORKDIR /bot
 
-# Install dependencies
+# Install dependencies w/ yarn
 COPY package.json /bot
 COPY yarn.lock /bot
 RUN apk --no-cache --virtual build-dependencies add \

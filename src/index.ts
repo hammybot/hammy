@@ -1,5 +1,3 @@
-import { config } from 'dotenv';
-
 import {
 	MediaPause,
 	MediaResume,
@@ -18,7 +16,6 @@ import {
 	MESSAGE_TARGETS
 } from './utils';
 
-config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
