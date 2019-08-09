@@ -13,9 +13,9 @@ export const WATOChallenge = (msg: Message) => {
 	// Create a new challenge entry in database
 	// - Challenges table
 	//   - Id							-> Primary Key (auto indexed)
-	//   - ChallengerUserId				-> Challenger user's discord id
-	//   - ChallengedUserId				-> Challenged user's discord id
-	//   - TextChannelId				-> Originating text channel where the challenge started in
+	//   - ChallengerId					-> Challenger user's discord id
+	//   - ChallengedId					-> Challenged user's discord id
+	//   - ChannelId					-> Originating text channel where the challenge started in
 	//   - OriginalDescription			-> Original challenge text from discord message
 	//   - TranslatedDescription		-> Displayed message text after translating key words (like you -> username)
 	//   - Status						-> PND (Pending challenged user's response), BET (Pending user bets),
@@ -31,6 +31,8 @@ export const WATOChallengeResponse = (msg: Message) => {
 	// Validation:
 	// - There must be an active challenge issued to the author by the mentioned user in the message
 	// - The value responded for the BetLimit must be a number >= 1 and <= Number.MAX_SAFE_INTEGER
+	// nine quadrillion, seven trillion, one hundred ninety nine billion, two hundred fifty four million,
+	// seven hundred forty thousand, nine hundred ninety one
 
 	// If the challenge is accepted
 	// - Set the "BetLimit" for the active challenge for that author
