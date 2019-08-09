@@ -5,9 +5,14 @@
 	"main": "src/index.js",
 	"scripts": {
 		"build": "tsc",
+		"build:scripts": "tsc --project ./scripts",
 		"lint": "tslint -c tslint.json '**/*.{ts}'",
 		"dev:watch": "concurrently \"tsc -w\" \"nodemon dist/index.js\"",
-		"start": "node dist/index.js"
+		"start": "node dist/index.js",
+		"db:create-db": "npm run build:scripts && node dist/scripts/db-util.js --create-db",
+		"db:create-tables": "npm run build:scripts && node dist/scripts/db-util.js --create-tables",
+		"db:drop-db": "npm run build:scripts && node dist/scripts/db-util.js --drop-db",
+		"db:drop-tables": "npm run build:scripts && node dist/scripts/db-util.js --drop-tables"
 	},
 	"repository": {
 		"type": "git",
@@ -30,16 +35,18 @@
 		"discord.js": "^11.5.1",
 		"node-opus": "^0.3.2",
 		"pg": "^7.12.0",
-		"reflect-metadata": "^0.1.13",
+		"sql-template-strings": "^2.2.2",
 		"ts-stopwatch": "^0.0.4",
-		"typeorm": "^0.2.18",
 		"ytdl-core": "^0.29.3"
 	},
 	"devDependencies": {
+		"@types/dotenv": "^6.1.1",
 		"@types/node": "^12.6.8",
 		"@types/pg": "^7.4.14",
 		"concurrently": "^4.1.1",
+		"dotenv": "^8.0.0",
 		"nodemon": "^1.19.1",
+		"pgtools": "^0.3.0",
 		"tslint": "^5.18.0",
 		"typescript": "^3.5.3"
 	}
