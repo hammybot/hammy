@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 import { Stopwatch } from 'ts-stopwatch';
 
-import { BOT_MESSAGES } from '../utils/constants';
+import { BOT_MESSAGES } from '../../utils/constants';
 
 export const SendPing = async (msg: Message) => {
 	const timer = new Stopwatch();

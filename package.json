@@ -34,6 +34,7 @@
 	"homepage": "https://github.com/moosebot/hammy#readme",
 	"dependencies": {
 		"discord.js": "^11.5.1",
+		"dotenv": "^8.0.0",
 		"node-opus": "^0.3.2",
 		"pg": "^7.12.0",
 		"sql-template-strings": "^2.2.2",
@@ -45,7 +46,6 @@
 		"@types/node": "^12.6.8",
 		"@types/pg": "^7.4.14",
 		"concurrently": "^4.1.1",
-		"dotenv": "^8.0.0",
 		"nodemon": "^1.19.1",
 		"pgtools": "^0.3.0",
 		"tslint": "^5.18.0",

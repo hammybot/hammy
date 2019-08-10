@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 import * as ytdl from 'ytdl-core';
 
-import { BOT_MESSAGES, COMMANDS } from '../utils/constants';
+import { BOT_MESSAGES, COMMANDS } from '../../utils/constants';
 
 export const PlayYoutube = async (msg: Message) => {
 	const ytUrl = msg.content.match(COMMANDS.PLAY_YOUTUBE);

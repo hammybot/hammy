@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 
-import { BOT_MESSAGES } from '../utils/constants';
+import { BOT_MESSAGES } from '../../utils/constants';
 
 const _isValidVoiceConnection = (msg: Message) => {
 	const voiceChannel = msg.member.voiceChannel;

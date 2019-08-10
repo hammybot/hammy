@@ -1,28 +1,39 @@
 import { Client, Message } from 'discord.js';
 
-export const WATOChallenge = (msg: Message) => {
+import { createNewChallenge, getUserActiveChallenge } from './db/wato-db';
+import { Challenge } from './models/challenge';
+import { ChallengeStatus } from './models/challenge-status';
+
+export const WATOChallenge = async (msg: Message) => {
 	const challenger = msg.author;
 	const challenged = msg.mentions.users.values().next().value;
-	console.log(`${challenged.username} has been challenged by ${challenger.username}!!!`);
 
-	// Validation:
-	// - Both users cannot be in an active challenge (waiting for challenge response or bet response)
-	// - You can't challenge a bot ( not yet :) )
-	// - You must provide challenge text, i.e. "What are the odds 'that you {Challenge}?'"
+	if (challenger.bot || challenged.bot) {
+		await msg.channel.send(`Hey <@${challenger.id}>! Bot's can't play the odds game...`);
+		return;
+	}
 
-	// Create a new challenge entry in database
-	// - Challenges table
-	//   - Id							-> Primary Key (auto indexed)
-	//   - ChallengerId					-> Challenger user's discord id
-	//   - ChallengedId					-> Challenged user's discord id
-	//   - ChannelId					-> Originating text channel where the challenge started in
-	//   - OriginalDescription			-> Original challenge text from discord message
-	//   - TranslatedDescription		-> Displayed message text after translating key words (like you -> username)
-	//   - Status						-> PND (Pending challenged user's response), BET (Pending user bets),
-	//                                  -> DEC (Declined challenge), CMP (Challenge completed)
-	//   - BetLimit						-> Max number that can be selected for a bet
-	//   - ChallengerBet				-> Number chosen by the challenger user
-	//   - ChallengedBet				-> Number chosen by the challenged user
+	const challengedActiveChallenge = await getUserActiveChallenge(challenged);
+	if (challengedActiveChallenge) {
+		await msg.channel.send(`<@${challenged.id}> is currently in a challenge! They need to finish that one first.`);
+		return;
+	}
+
+	const challengerActiveChallenge = await getUserActiveChallenge(challenger);
+	if (challengerActiveChallenge) {
+		await msg.channel.send(`You're currently in a challenge! Finish that one first.`);
+		return;
+	}
+
+	const challenge: Challenge = {
+		ChallengerId: challenger.id,
+		ChallengedId: challenged.id,
+		ChannelId: msg.channel.id,
+		Description: msg.cleanContent,
+		Status: ChallengeStatus.PendingAccept
+	};
+
+	await createNewChallenge(challenge);
 
 	// Note to challenged user of how to respond? Mention the help command?
 };
