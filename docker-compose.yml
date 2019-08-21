@@ -3,8 +3,10 @@ services:
   bot:
     build: .
     env_file: .env
+    network_mode: host
   db:
     image: postgres
+    restart: always
     volumes:
       - db:/var/lib/postgresql/data
     ports:

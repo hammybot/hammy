@@ -4,5 +4,5 @@ export type Matcher = (msg: Message) => boolean;
 
 export interface MessageReceiver {
 	matcher: Matcher;
-	callback: (msg: Message) => Promise<void> | void;
+	callback: (msg: Message) => Promise<void>;
 }

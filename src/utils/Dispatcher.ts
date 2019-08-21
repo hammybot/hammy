@@ -35,7 +35,7 @@ export class Dispatcher extends EventEmitter {
 
 			this._messageReceivers.forEach(receiver => {
 				if (receiver.matcher(message)) {
-					receiver.callback(message);
+					receiver.callback(message).catch(console.error);
 				}
 			});
 		});
