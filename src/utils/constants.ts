@@ -6,15 +6,17 @@ export const BOT_MESSAGES = {
 	ERROR_OCCURED: 'Something went wrong, I can\'t complete that request right now :disappointed:'
 };
 
-export const COMMANDS = {
+export const REGEX = {
 	PING: /^!ping$/,
 	PAUSE: /^!pause$/,
 	RESUME: /^!resume$/,
 	STOP: /^!stop$/,
 	PLAY_YOUTUBE: /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/,
 	TEST: /^!test$/,
+	VALID_NUMBER: /(?<=\s|^)\d+/
 };
 
 export const MESSAGE_TARGETS = {
-	WATO_CHALLENGE: 'what are the odds'
+	WATO_CHALLENGE: 'what are the odds',
+	WATO_DECLINE: 'decline'
 };

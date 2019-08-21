@@ -18,7 +18,7 @@ export const createContainsMatcher = (str: string, caseSensitive: boolean): Matc
 
 export const createRegexMatcher = (testRegex: RegExp): Matcher => {
 	return (msg: Message) => {
-		return testRegex.test(msg.content);
+		return testRegex.test(msg.cleanContent);
 	};
 };
 

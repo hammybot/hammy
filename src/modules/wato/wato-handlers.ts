@@ -1,5 +1,7 @@
 import { Client, Message, User } from 'discord.js';
 
+import { REGEX } from '../../utils';
+
 import { createNewChallenge, getUserActiveChallenge } from './db/wato-db';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
@@ -36,13 +38,25 @@ export const WATOChallenge = async (msg: Message) => {
 	await createNewChallenge(challenge);
 };
 
-export const WATOChallengeResponse = (msg: Message) => {
-	// Validation:
-	// - There must be an active challenge issued to the author by the mentioned user in the message
-	// - The value responded for the BetLimit must be a number >= 1 and <= Number.MAX_SAFE_INTEGER
-	// nine quadrillion, seven trillion, one hundred ninety nine billion, two hundred fifty four million,
-	// seven hundred forty thousand, nine hundred ninety one
+export const WATOChallengeResponse = async (msg: Message) => {
+	const challengeResponse = msg.cleanContent.match(REGEX.VALID_NUMBER);
+	if (!challengeResponse || !challengeResponse[0]) { return; }
 
+	const betLimit = Number(challengeResponse[0]);
+
+	const activeChallenge = await getUserActiveChallenge(msg.author);
+	if (!activeChallenge ||
+		activeChallenge.Status !== ChallengeStatus.PendingAccept ||
+		activeChallenge.ChallengedId !== msg.author.id) { return; }
+
+	if (!Number.isSafeInteger(betLimit) || betLimit <= 1 || betLimit > Number.MAX_SAFE_INTEGER) {
+		await msg.channel.send(`
+			<@${msg.author.id}> Your bet needs to be between 1 and 9,007,199,254,740,991
+		`);
+		return;
+	}
+
+	console.log(`${msg.author.username} has bet ${betLimit}`);
 	// If the challenge is accepted
 	// - Set the "BetLimit" for the active challenge for that author
 	// - Set the status of the challenge to BET
@@ -51,7 +65,15 @@ export const WATOChallengeResponse = (msg: Message) => {
 	// Note to challenged user of how to respond? Mention the help command?
 	// challenger.send(`Active challenge from: ${challenged.username}`);
 	// challenged.send(`Active challenge from: ${challenger.username}`);
+};
 
+export const WATOChallengeDecline = async (msg: Message) => {
+	const activeChallenge = await getUserActiveChallenge(msg.author);
+	if (!activeChallenge ||
+		activeChallenge.Status !== ChallengeStatus.PendingAccept ||
+		activeChallenge.ChallengedId !== msg.author.id) { return; }
+
+	console.log(`${msg.author.username} has declined a challenge`);
 
 	// If the challenge is declined
 	// - Set the status of the challenge to DEC

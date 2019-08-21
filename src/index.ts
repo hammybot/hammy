@@ -7,16 +7,18 @@ import {
 	MediaStop,
 	PlayYoutube,
 	SendPing,
-	WATOChallenge
+	WATOChallenge,
+	WATOChallengeDecline,
+	WATOChallengeResponse
 } from './modules';
 import {
 	combineMatchers,
-	COMMANDS,
 	createContainsMatcher,
 	createRegexMatcher,
 	createUniqueMentionsMatcher,
 	Dispatcher,
-	MESSAGE_TARGETS
+	MESSAGE_TARGETS,
+	REGEX
 } from './utils';
 
 config();
@@ -24,27 +26,27 @@ config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(COMMANDS.PING),
+	matcher: createRegexMatcher(REGEX.PING),
 	callback: SendPing
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(COMMANDS.PLAY_YOUTUBE),
+	matcher: createRegexMatcher(REGEX.PLAY_YOUTUBE),
 	callback: PlayYoutube
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(COMMANDS.PAUSE),
+	matcher: createRegexMatcher(REGEX.PAUSE),
 	callback: MediaPause
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(COMMANDS.RESUME),
+	matcher: createRegexMatcher(REGEX.RESUME),
 	callback: MediaResume
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(COMMANDS.STOP),
+	matcher: createRegexMatcher(REGEX.STOP),
 	callback: MediaStop
 });
 
@@ -54,6 +56,22 @@ messageDispatcher.register({
 		createContainsMatcher(MESSAGE_TARGETS.WATO_CHALLENGE, false)
 	),
 	callback: WATOChallenge
+});
+
+messageDispatcher.register({
+	matcher: combineMatchers(
+		createUniqueMentionsMatcher(1, true),
+		createRegexMatcher(REGEX.VALID_NUMBER)
+	),
+	callback: WATOChallengeResponse
+});
+
+messageDispatcher.register({
+	matcher: combineMatchers(
+		createUniqueMentionsMatcher(1, true),
+		createContainsMatcher(MESSAGE_TARGETS.WATO_DECLINE, false)
+	),
+	callback: WATOChallengeDecline
 });
 
 
