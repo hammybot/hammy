@@ -1,4 +1,4 @@
-import { Client, Message } from 'discord.js';
+import { Client, Message, User } from 'discord.js';
 
 import { createNewChallenge, getUserActiveChallenge } from './db/wato-db';
 import { Challenge } from './models/challenge';
@@ -6,7 +6,7 @@ import { ChallengeStatus } from './models/challenge-status';
 
 export const WATOChallenge = async (msg: Message) => {
 	const challenger = msg.author;
-	const challenged = msg.mentions.users.values().next().value;
+	const challenged = msg.mentions.users.values().next().value as User;
 
 	if (challenger.bot || challenged.bot) {
 		await msg.channel.send(`Hey <@${challenger.id}>! Bot's can't play the odds game...`);
@@ -34,8 +34,6 @@ export const WATOChallenge = async (msg: Message) => {
 	};
 
 	await createNewChallenge(challenge);
-
-	// Note to challenged user of how to respond? Mention the help command?
 };
 
 export const WATOChallengeResponse = (msg: Message) => {
@@ -49,6 +47,11 @@ export const WATOChallengeResponse = (msg: Message) => {
 	// - Set the "BetLimit" for the active challenge for that author
 	// - Set the status of the challenge to BET
 	// - Send DM's to both participants asking for a bet
+
+	// Note to challenged user of how to respond? Mention the help command?
+	// challenger.send(`Active challenge from: ${challenged.username}`);
+	// challenged.send(`Active challenge from: ${challenger.username}`);
+
 
 	// If the challenge is declined
 	// - Set the status of the challenge to DEC
