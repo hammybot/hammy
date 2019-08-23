@@ -7,13 +7,12 @@ export const BOT_MESSAGES = {
 };
 
 export const REGEX = {
-	PING: /^!ping$/,
-	PAUSE: /^!pause$/,
-	RESUME: /^!resume$/,
-	STOP: /^!stop$/,
-	PLAY_YOUTUBE: /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/,
-	TEST: /^!test$/,
-	VALID_NUMBER: /(?<=\s|^)\d+/
+	COMMAND_PING: /^!ping$/,
+	COMMAND_PAUSE: /^!pause$/,
+	COMMAND_RESUME: /^!resume$/,
+	COMMAND_STOP: /^!stop$/,
+	COMMAND_PLAY_YOUTUBE: /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/,
+	VALID_NUMBER: /(?<=\s|^)-?\d+/
 };
 
 export const MESSAGE_TARGETS = {

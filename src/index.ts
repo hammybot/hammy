@@ -26,27 +26,27 @@ config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.PING),
+	matcher: createRegexMatcher(REGEX.COMMAND_PING),
 	callback: SendPing
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.PLAY_YOUTUBE),
+	matcher: createRegexMatcher(REGEX.COMMAND_PLAY_YOUTUBE),
 	callback: PlayYoutube
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.PAUSE),
+	matcher: createRegexMatcher(REGEX.COMMAND_PAUSE),
 	callback: MediaPause
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.RESUME),
+	matcher: createRegexMatcher(REGEX.COMMAND_RESUME),
 	callback: MediaResume
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.STOP),
+	matcher: createRegexMatcher(REGEX.COMMAND_STOP),
 	callback: MediaStop
 });
 
