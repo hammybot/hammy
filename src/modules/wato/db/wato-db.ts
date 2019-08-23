@@ -3,7 +3,7 @@ import { User } from 'discord.js';
 import { getDbPool } from '../../../db';
 import { Challenge } from '../models/challenge';
 
-import { createNewChallengeSql, getUserActiveChallengeSql } from './wato-sql';
+import { createNewChallengeSql, declineChallengeSql, getUserActiveChallengeSql } from './wato-sql';
 
 export const createNewChallenge = async (challenge: Challenge): Promise<void> => {
 	const pool = getDbPool();
@@ -21,6 +21,15 @@ export const getUserActiveChallenge = async (user: User): Promise<Challenge | nu
 		if (result.rowCount === 0) { return null; }
 
 		return result.rows[0];
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const declineChallenge = async (challenge: Challenge): Promise<void> => {
+	const pool = getDbPool();
+	try {
+		await pool.query(declineChallengeSql(challenge));
 	} catch (error) {
 		throw error;
 	}

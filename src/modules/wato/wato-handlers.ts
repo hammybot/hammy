@@ -2,7 +2,7 @@ import { Client, Message, User } from 'discord.js';
 
 import { REGEX } from '../../utils';
 
-import { createNewChallenge, getUserActiveChallenge } from './db/wato-db';
+import { createNewChallenge, declineChallenge, getUserActiveChallenge } from './db/wato-db';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
 
@@ -75,9 +75,11 @@ export const WATOChallengeDecline = async (msg: Message) => {
 
 	console.log(`${msg.author.username} has declined a challenge`);
 
-	// If the challenge is declined
-	// - Set the status of the challenge to DEC
-	// - Respond to text channel announcing the official declining of the challenge
+	await declineChallenge(activeChallenge);
+
+	await msg.channel.send(`
+		<@${msg.author.id}> has declined the challenge from <@${activeChallenge.ChallengerId}>
+	`);
 };
 
 export const WATOBetResponse = (msg: Message) => {
