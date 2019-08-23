@@ -2,7 +2,7 @@ import { Client, Message, User } from 'discord.js';
 
 import { REGEX } from '../../utils';
 
-import { createNewChallenge, declineChallenge, getUserActiveChallenge } from './db/wato-db';
+import { createNewChallenge, declineChallenge, getUserActiveChallenge, setBetLimit } from './db/wato-db';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
 
@@ -56,15 +56,15 @@ export const WATOChallengeResponse = async (msg: Message) => {
 		return;
 	}
 
-	console.log(`${msg.author.username} has bet ${betLimit}`);
-	// If the challenge is accepted
-	// - Set the "BetLimit" for the active challenge for that author
-	// - Set the status of the challenge to BET
-	// - Send DM's to both participants asking for a bet
+	await setBetLimit(activeChallenge, betLimit);
 
-	// Note to challenged user of how to respond? Mention the help command?
-	// challenger.send(`Active challenge from: ${challenged.username}`);
-	// challenged.send(`Active challenge from: ${challenger.username}`);
+	const challenger = msg.guild.members.get(activeChallenge.ChallengerId);
+	const challenged = msg.guild.members.get(activeChallenge.ChallengedId);
+
+	if (!challenger || !challenged) { return; }
+
+	challenger.send(`Place your bet for your odds challenge with ${challenged.user.username}`);
+	challenged.send(`Place your bet for your odds challenge with ${challenger.user.username}`);
 };
 
 export const WATOChallengeDecline = async (msg: Message) => {
