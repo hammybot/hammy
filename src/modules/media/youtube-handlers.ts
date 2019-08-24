@@ -4,7 +4,7 @@ import * as ytdl from 'ytdl-core';
 import { BOT_MESSAGES, REGEX } from '../../utils/constants';
 
 export const PlayYoutube = async (msg: Message) => {
-	const ytUrl = msg.content.match(REGEX.PLAY_YOUTUBE);
+	const ytUrl = msg.content.match(REGEX.COMMAND_PLAY_YOUTUBE);
 	if (!ytUrl || !ytUrl[0] || !msg.guild) {
 		return;
 	}
