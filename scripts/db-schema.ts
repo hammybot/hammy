@@ -21,6 +21,7 @@ export const createChallengesTable = (schema: string, owner: string): string => 
 			"BetLimit" bigint,
 			"ChallengerBet" bigint,
 			"ChallengedBet" bigint,
+			"WinnerId" text,
 			CONSTRAINT "PRIMARY_KEY" PRIMARY KEY ("Id")
 		)
 		WITH (
