@@ -2,8 +2,17 @@ import { User } from 'discord.js';
 
 import { getDbPool } from '../../../db';
 import { Challenge } from '../models/challenge';
+import { ChallengeStatus } from '../models/challenge-status';
 
-import { createNewChallengeSql, declineChallengeSql, getUserActiveChallengeSql, setBetLimitSql } from './wato-sql';
+import {
+	completeChallengeSql,
+	createNewChallengeSql,
+	getUserActiveChallengeSql,
+	setBetLimitSql,
+	setChallengedBetSql,
+	setChallengerBetSql,
+	updateChallengeStatusSql
+} from './wato-sql';
 
 export const createNewChallenge = async (challenge: Challenge): Promise<void> => {
 	const pool = getDbPool();
@@ -35,10 +44,37 @@ export const setBetLimit = async (challenge: Challenge, betLimit: number): Promi
 	}
 };
 
+export const setChallengerBet = async (challenge: Challenge, bet: number): Promise<void> => {
+	const pool = getDbPool();
+	try {
+		await pool.query(setChallengerBetSql(challenge, bet));
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const setChallengedBet = async (challenge: Challenge, bet: number): Promise<void> => {
+	const pool = getDbPool();
+	try {
+		await pool.query(setChallengedBetSql(challenge, bet));
+	} catch (error) {
+		throw error;
+	}
+};
+
 export const declineChallenge = async (challenge: Challenge): Promise<void> => {
 	const pool = getDbPool();
 	try {
-		await pool.query(declineChallengeSql(challenge));
+		await pool.query(updateChallengeStatusSql(challenge, ChallengeStatus.Declined));
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const completeChallenge = async (challenge: Challenge, winnerId: string): Promise<void> => {
+	const pool = getDbPool();
+	try {
+		await pool.query(completeChallengeSql(challenge, winnerId));
 	} catch (error) {
 		throw error;
 	}

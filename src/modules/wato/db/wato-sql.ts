@@ -33,10 +33,35 @@ export const setBetLimitSql = (challenge: Challenge, betLimit: number) => {
 	`;
 };
 
-export const declineChallengeSql = (challenge: Challenge) => {
+export const setChallengerBetSql = (challenge: Challenge, bet: number) => {
 	return SQL`
 		UPDATE public.challenges
-		SET "Status"=${ChallengeStatus.Declined}
+		SET "ChallengerBet"=${bet}
+		WHERE "Id"=${challenge.Id};
+	`;
+};
+
+export const setChallengedBetSql = (challenge: Challenge, bet: number) => {
+	return SQL`
+		UPDATE public.challenges
+		SET "ChallengedBet"=${bet}
+		WHERE "Id"=${challenge.Id};
+	`;
+};
+
+export const updateChallengeStatusSql = (challenge: Challenge, status: ChallengeStatus) => {
+	return SQL`
+		UPDATE public.challenges
+		SET "Status"=${status}
+		WHERE "Id"=${challenge.Id};
+	`;
+};
+
+export const completeChallengeSql = (challenge: Challenge, winnerId: string) => {
+	return SQL`
+		UPDATE public.challenges
+		SET "Status"=${ChallengeStatus.Completed},
+			"WinnerId"=${winnerId}
 		WHERE "Id"=${challenge.Id};
 	`;
 };

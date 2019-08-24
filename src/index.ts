@@ -7,12 +7,14 @@ import {
 	MediaStop,
 	PlayYoutube,
 	SendPing,
+	WATOBetResponse,
 	WATOChallenge,
 	WATOChallengeDecline,
 	WATOChallengeResponse
 } from './modules';
 import {
 	combineMatchers,
+	createChannelTypeMatcher,
 	createContainsMatcher,
 	createRegexMatcher,
 	createUniqueMentionsMatcher,
@@ -26,32 +28,48 @@ config();
 const messageDispatcher = new Dispatcher();
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.COMMAND_PING),
+	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
+		createRegexMatcher(REGEX.COMMAND_PING)
+	),
 	callback: SendPing
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.COMMAND_PLAY_YOUTUBE),
+	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
+		createRegexMatcher(REGEX.COMMAND_PLAY_YOUTUBE)
+	),
 	callback: PlayYoutube
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.COMMAND_PAUSE),
+	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
+		createRegexMatcher(REGEX.COMMAND_PAUSE)
+	),
 	callback: MediaPause
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.COMMAND_RESUME),
+	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
+		createRegexMatcher(REGEX.COMMAND_RESUME)
+	),
 	callback: MediaResume
 });
 
 messageDispatcher.register({
-	matcher: createRegexMatcher(REGEX.COMMAND_STOP),
+	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
+		createRegexMatcher(REGEX.COMMAND_STOP)
+	),
 	callback: MediaStop
 });
 
 messageDispatcher.register({
 	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
 		createUniqueMentionsMatcher(1, true),
 		createContainsMatcher(MESSAGE_TARGETS.WATO_CHALLENGE, false)
 	),
@@ -60,6 +78,7 @@ messageDispatcher.register({
 
 messageDispatcher.register({
 	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
 		createUniqueMentionsMatcher(1, true),
 		createRegexMatcher(REGEX.VALID_NUMBER)
 	),
@@ -68,10 +87,19 @@ messageDispatcher.register({
 
 messageDispatcher.register({
 	matcher: combineMatchers(
+		createChannelTypeMatcher('text'),
 		createUniqueMentionsMatcher(1, true),
 		createContainsMatcher(MESSAGE_TARGETS.WATO_DECLINE, false)
 	),
 	callback: WATOChallengeDecline
+});
+
+messageDispatcher.register({
+	matcher: combineMatchers(
+		createChannelTypeMatcher('dm'),
+		createRegexMatcher(REGEX.VALID_NUMBER)
+	),
+	callback: WATOBetResponse
 });
 
 

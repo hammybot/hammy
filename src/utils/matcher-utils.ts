@@ -34,3 +34,9 @@ export const createUniqueMentionsMatcher = (numOfUniqueMentions: number, exclude
 		return uniqueMentionsSet.size === numOfUniqueMentions;
 	};
 };
+
+export const createChannelTypeMatcher = (type: 'dm' | 'group' | 'text' | 'voice' | 'category' | 'news' | 'store'): Matcher => {
+	return (msg: Message) => {
+		return msg.channel.type === type;
+	};
+};

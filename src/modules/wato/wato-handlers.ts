@@ -1,8 +1,16 @@
-import { Client, Message, User } from 'discord.js';
+import { Client, Message, TextChannel, User } from 'discord.js';
 
 import { REGEX } from '../../utils';
 
-import { createNewChallenge, declineChallenge, getUserActiveChallenge, setBetLimit } from './db/wato-db';
+import {
+	completeChallenge,
+	createNewChallenge,
+	declineChallenge,
+	getUserActiveChallenge,
+	setBetLimit,
+	setChallengedBet,
+	setChallengerBet
+} from './db/wato-db';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
 
@@ -82,17 +90,47 @@ export const WATOChallengeDecline = async (msg: Message) => {
 	`);
 };
 
-export const WATOBetResponse = (msg: Message) => {
-	// Validation:
-	// - Must be a direct message to hammy
-	// - There must be an active challenge issued to the author by the mentioned user in the message
-	// - The value responded for the bet must be a number >= 1 and <= activeChallenge.BetLimit
+export const WATOBetResponse = async (msg: Message) => {
+	const challengeResponse = msg.cleanContent.match(REGEX.VALID_NUMBER);
+	if (!challengeResponse || !challengeResponse[0]) { return; }
 
-	// Set the correct bet column on the database
-	// If both bets are now set
-	// - set the challenge in database to CMP
-	// - Archive the data in a separate table and remove from active table??
-	// - then send the results to the original text channel
+	const bet = Number(challengeResponse[0]);
+
+	let activeChallenge = await getUserActiveChallenge(msg.author);
+	if (!activeChallenge || !activeChallenge.BetLimit || activeChallenge.Status !== ChallengeStatus.PendingBets) {
+		return;
+	}
+
+	if (!Number.isSafeInteger(bet) || bet <= 1 || bet > activeChallenge.BetLimit) {
+		await msg.channel.send(`
+			<@${msg.author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
+		`);
+		return;
+	}
+
+	const setBet = activeChallenge.ChallengerId === msg.author.id ? setChallengerBet : setChallengedBet;
+	await setBet(activeChallenge, bet);
+
+	activeChallenge = await getUserActiveChallenge(msg.author);
+
+	if (!activeChallenge ||
+		!activeChallenge.ChallengerBet ||
+		!activeChallenge.ChallengedBet ||
+		activeChallenge.Status !== ChallengeStatus.PendingBets) {
+		return;
+	}
+
+	const winnerId = activeChallenge.ChallengerBet === activeChallenge.ChallengedBet
+		? activeChallenge.ChallengerId : activeChallenge.ChallengedId;
+
+	await completeChallenge(activeChallenge, winnerId);
+
+	const originalChannel = msg.client.channels.get(activeChallenge.ChannelId) as TextChannel;
+	if (!originalChannel) { return; }
+
+	// tslint:disable-next-line: max-line-length
+	originalChannel.send(`<@${activeChallenge.ChallengerId}> bet ${activeChallenge.ChallengerBet} and <@${activeChallenge.ChallengedId}> bet ${activeChallenge.ChallengedBet}`);
+	originalChannel.send(`<@${winnerId}> is the winner!`);
 };
 
 export const WATOLeaderboard = (msg: Message) => {
