@@ -1,4 +1,7 @@
-on: push
+on:
+    push:
+        branches:
+        - master
 name: Push 'latest' Image to Docker Hub
 jobs:
     buildDockerImage:
@@ -10,7 +13,7 @@ jobs:
               uses: actions/docker/cli@master
               env:
                   APPLICATION_NAME: hammy
-                  DOCKER_USERNAME: moosebot
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
               with:
                   args:
                       build -t "$DOCKER_USERNAME/$APPLICATION_NAME:latest" .
@@ -23,6 +26,6 @@ jobs:
               uses: actions/docker/cli@master
               env:
                   APPLICATION_NAME: hammy
-                  DOCKER_USERNAME: moosebot
+                  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
               with:
                   args: push $DOCKER_USERNAME/$APPLICATION_NAME
