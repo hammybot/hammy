@@ -13,8 +13,7 @@ jobs:
                   DOCKER_USERNAME: moosebot
               with:
                   args:
-                      build -t "$DOCKER_USERNAME/$APPLICATION_NAME:$(echo ${{ github.sha }}
-                      | head -c7)" .
+                      build -t "$DOCKER_USERNAME/$APPLICATION_NAME:latest" .
             - name: Docker Login
               uses: actions/docker/login@master
               env:
