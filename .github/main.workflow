@@ -1,8 +1,8 @@
-workflow "Build and Deploy" {
-  on = "push"
+workflow "Push latest\" Image to Docker Hub" {
   resolves = [
     "Push image to Docker Hub",
   ]
+  on = "push"
 }
 
 action "Build Docker image" {
