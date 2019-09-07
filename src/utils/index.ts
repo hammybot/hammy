@@ -1,3 +1,2 @@
 export * from './constants';
-export * from './Dispatcher';
-export * from './matcher-utils';
+export * from './message-predicates';

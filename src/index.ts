@@ -1,112 +1,33 @@
 import { config } from 'dotenv';
-
-import { closeDbPool } from './db';
-import {
-	MediaPause,
-	MediaResume,
-	MediaStop,
-	PlayYoutube,
-	SendPing,
-	WATOBetResponse,
-	WATOChallenge,
-	WATOChallengeDecline,
-	WATOChallengeResponse
-} from './modules';
-import {
-	combineMatchers,
-	createChannelTypeMatcher,
-	createContainsMatcher,
-	createRegexMatcher,
-	createUniqueMentionsMatcher,
-	Dispatcher,
-	MESSAGE_TARGETS,
-	REGEX
-} from './utils';
-
 config();
 
-const messageDispatcher = new Dispatcher();
+// Have to run the configuration step before the container runs
+// tslint:disable-next-line: ordered-imports
+import { Pool } from 'pg';
+import { Bot } from './bot';
+import container from './inversify.config';
+import { SYMBOLS } from './types';
 
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createRegexMatcher(REGEX.COMMAND_PING)
-	),
-	callback: SendPing
+
+const bot = container.get<Bot>(SYMBOLS.Bot);
+bot.listen().then(() => {
+	console.log('hammy ready!');
+}).catch((error) => {
+	console.log(error);
 });
 
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createRegexMatcher(REGEX.COMMAND_PLAY_YOUTUBE)
-	),
-	callback: PlayYoutube
+const dbPool = container.get<Pool>(SYMBOLS.DbPool);
+dbPool.on('error', (err) => {
+	console.error('DB Pool: Unexpected error on idle db client', err);
 });
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createRegexMatcher(REGEX.COMMAND_PAUSE)
-	),
-	callback: MediaPause
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createRegexMatcher(REGEX.COMMAND_RESUME)
-	),
-	callback: MediaResume
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createRegexMatcher(REGEX.COMMAND_STOP)
-	),
-	callback: MediaStop
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createUniqueMentionsMatcher(1, true),
-		createContainsMatcher(MESSAGE_TARGETS.WATO_CHALLENGE, false)
-	),
-	callback: WATOChallenge
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createUniqueMentionsMatcher(1, true),
-		createRegexMatcher(REGEX.VALID_NUMBER)
-	),
-	callback: WATOChallengeResponse
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('text'),
-		createUniqueMentionsMatcher(1, true),
-		createContainsMatcher(MESSAGE_TARGETS.WATO_DECLINE, false)
-	),
-	callback: WATOChallengeDecline
-});
-
-messageDispatcher.register({
-	matcher: combineMatchers(
-		createChannelTypeMatcher('dm'),
-		createRegexMatcher(REGEX.VALID_NUMBER)
-	),
-	callback: WATOBetResponse
-});
-
 
 // Process exiting cleanup code
 const exitHandler = (options: any, exitCode: any) => {
 	if (options.exit) {
-		closeDbPool().finally(() => process.exit());
+		dbPool.end().then(() => {
+			console.log('DB Pool: Connection successfully closed');
+			process.exit();
+		});
 	}
 };
 

@@ -1,5 +1,12 @@
 {
 	"compilerOptions": {
+		"types": [
+			"reflect-metadata"
+		],
+		"lib": [
+			"es6",
+			"dom"
+		],
 		"target": "es2017",
 		"module": "commonjs",
 		"allowJs": true,
