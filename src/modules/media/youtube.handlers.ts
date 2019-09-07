@@ -1,10 +1,8 @@
 import { Message } from 'discord.js';
 import { inject, injectable } from 'inversify';
-import { Readable } from 'stream';
-import * as ytdl from 'ytdl-core';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
-import { SYMBOLS } from '../../types';
+import { SYMBOLS, YtdlCreator } from '../../types';
 import {
 	combinePredicates,
 	createBotNotPlayingMediaPredicate,
@@ -17,9 +15,7 @@ import { REGEX } from '../../utils/constants';
 @injectable()
 export class YoutubeMessageHandler implements MessageHandler {
 
-	constructor(
-		@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: (url: string, opts?: ytdl.downloadOptions | undefined) => Readable
-	) { }
+	constructor(@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator) { }
 
 	messageHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(

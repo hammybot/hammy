@@ -32,8 +32,6 @@ export class WATODeclineMessageHandler implements MessageHandler {
 			activeChallenge.Status !== ChallengeStatus.PendingAccept ||
 			activeChallenge.ChallengedId !== message.author.id) { return; }
 
-		console.log(`${message.author.username} has declined a challenge`);
-
 		await this._watoDatabase.declineChallenge(activeChallenge);
 
 		await message.channel.send(`
