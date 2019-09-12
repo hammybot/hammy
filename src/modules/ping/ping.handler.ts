@@ -24,6 +24,6 @@ export class PingMessageHandler implements MessageHandler {
 		const pongMsg = await message.channel.send(BOT_MESSAGES.PONG) as Message;
 		timer.stop();
 
-		pongMsg.edit(`${pongMsg.content} ${'`'}${timer.getTime()}ms${'`'}`);
+		await pongMsg.edit(`${pongMsg.content} ${'`'}${timer.getTime()}ms${'`'}`);
 	}
 }
