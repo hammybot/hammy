@@ -70,6 +70,12 @@ describe('PingMessageHandler', () => {
 			await sut.handleMessage(createMockMessage(BOT_MESSAGES.PONG));
 
 			mockChannel.verify(mock => mock.send(BOT_MESSAGES.PONG), Times.once());
+		});
+
+		it('timer should be started/stopped and returned in edit of message', async () => {
+			mockStopWatch.setup(mock => mock.getTime()).returns(() => 100);
+			await sut.handleMessage(createMockMessage(BOT_MESSAGES.PONG));
+
 			mockStopWatch.verify(mock => mock.start(), Times.once());
 			mockStopWatch.verify(mock => mock.stop(), Times.once());
 			mockStopWatch.verify(mock => mock.getTime(), Times.once());
