@@ -13,7 +13,8 @@
 		"db:create-db": "npm run build:scripts && node dist/scripts/db-util.js --create-db",
 		"db:create-schema": "npm run build:scripts && node dist/scripts/db-util.js --create-schema",
 		"db:drop-all": "npm run build:scripts && node dist/scripts/db-util.js --drop-db",
-		"db:drop-schema": "npm run build:scripts && node dist/scripts/db-util.js --drop-schema"
+		"db:drop-schema": "npm run build:scripts && node dist/scripts/db-util.js --drop-schema",
+		"test": "mocha -r ts-node/register \"src/**/*.spec.ts\""
 	},
 	"repository": {
 		"type": "git",
@@ -44,12 +45,18 @@
 		"ytdl-core": "^0.29.3"
 	},
 	"devDependencies": {
+		"@types/chai": "^4.2.2",
 		"@types/dotenv": "^6.1.1",
+		"@types/mocha": "^5.2.7",
 		"@types/node": "^12.6.8",
 		"@types/pg": "^7.4.14",
+		"chai": "^4.2.0",
 		"concurrently": "^4.1.1",
+		"mocha": "^6.2.0",
 		"nodemon": "^1.19.1",
 		"pgtools": "^0.3.0",
+		"ts-mockito": "^2.4.2",
+		"ts-node": "^8.3.0",
 		"tslint": "^5.18.0",
 		"typescript": "^3.5.3"
 	}
