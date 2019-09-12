@@ -4,10 +4,9 @@ config();
 // Have to run the configuration step before the container runs
 // tslint:disable-next-line: ordered-imports
 import { Pool } from 'pg';
-import { Bot } from './bot';
-import container from './inversify.config';
+import { Bot } from './core/bot';
+import container from './core/inversify.config';
 import { SYMBOLS } from './types';
-
 
 const bot = container.get<Bot>(SYMBOLS.Bot);
 bot.listen().then(() => {

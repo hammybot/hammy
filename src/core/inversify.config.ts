@@ -5,8 +5,7 @@ import 'reflect-metadata';
 import { Stopwatch } from 'ts-stopwatch';
 import * as ytdl from 'ytdl-core';
 
-import { Bot } from './bot';
-import { MessageHandler } from './models/message-handler';
+import { MessageHandler } from '../models/message-handler';
 import {
 	PauseMediaMessageHandler,
 	PingMessageHandler,
@@ -17,9 +16,11 @@ import {
 	WATODeclineMessageHandler,
 	WATOResponseMessageHandler,
 	YoutubeMessageHandler
-} from './modules';
-import { WATODatabase } from './modules/wato/db/wato-database';
-import { StopwatchCreator, SYMBOLS, YtdlCreator } from './types';
+} from '../modules';
+import { WATODatabase } from '../modules/wato/db/wato-database';
+import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
+
+import { Bot } from './bot';
 
 const container = new Container();
 
