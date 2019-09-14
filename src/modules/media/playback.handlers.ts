@@ -11,7 +11,6 @@ import {
 } from '../../utils';
 import { REGEX } from '../../utils/constants';
 
-
 @injectable()
 export class PauseMediaMessageHandler implements MessageHandler {
 
