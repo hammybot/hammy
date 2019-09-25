@@ -31,6 +31,7 @@ describe('PingMessageHandler', () => {
 	afterEach(() => {
 		mockStopWatch.reset();
 		mockMessage.reset();
+		mockEditMessage.reset();
 		mockChannel.reset();
 	});
 

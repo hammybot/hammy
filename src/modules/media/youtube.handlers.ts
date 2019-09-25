@@ -13,7 +13,7 @@ import {
 import { REGEX } from '../../utils/constants';
 
 @injectable()
-export class YoutubeMessageHandler implements MessageHandler {
+export class PlayYoutubeUrlMessageHandler implements MessageHandler {
 
 	constructor(@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator) { }
 

@@ -19,6 +19,7 @@ describe('Playback Handlers', () => {
 
 	afterEach(() => {
 		mockMessage.reset();
+		mockChannel.reset();
 	});
 
 	describe('PauseMediaMessageHandler', () => {

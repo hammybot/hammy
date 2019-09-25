@@ -9,13 +9,13 @@ import { MessageHandler } from '../models/message-handler';
 import {
 	PauseMediaMessageHandler,
 	PingMessageHandler,
+	PlayYoutubeUrlMessageHandler,
 	ResumeMediaMessageHandler,
 	StopMediaMessageHandler,
 	WATOBetMessageHandler,
 	WATOChallengeMessageHandler,
 	WATODeclineMessageHandler,
 	WATOResponseMessageHandler,
-	YoutubeMessageHandler
 } from '../modules';
 import { WATODatabase } from '../modules/wato/db/wato-database';
 import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
@@ -37,7 +37,7 @@ container.bind<YtdlCreator>(SYMBOLS.YtdlCreator).toDynamicValue(
 );
 
 container.bind<PingMessageHandler>(SYMBOLS.PingMessageHandler).to(PingMessageHandler);
-container.bind<YoutubeMessageHandler>(SYMBOLS.YoutubeMessageHandler).to(YoutubeMessageHandler);
+container.bind<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler).to(PlayYoutubeUrlMessageHandler);
 container.bind<PauseMediaMessageHandler>(SYMBOLS.PauseMediaMessageHandler).to(PauseMediaMessageHandler);
 container.bind<ResumeMediaMessageHandler>(SYMBOLS.ResumeMediaMessageHandler).to(ResumeMediaMessageHandler);
 container.bind<StopMediaMessageHandler>(SYMBOLS.StopMediaMessageHandler).to(StopMediaMessageHandler);
@@ -53,7 +53,7 @@ export default container;
 function _createHandlers(): MessageHandler[] {
 	return [
 		container.get<PingMessageHandler>(SYMBOLS.PingMessageHandler),
-		container.get<YoutubeMessageHandler>(SYMBOLS.YoutubeMessageHandler),
+		container.get<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler),
 		container.get<PauseMediaMessageHandler>(SYMBOLS.PauseMediaMessageHandler),
 		container.get<ResumeMediaMessageHandler>(SYMBOLS.ResumeMediaMessageHandler),
 		container.get<StopMediaMessageHandler>(SYMBOLS.StopMediaMessageHandler),
