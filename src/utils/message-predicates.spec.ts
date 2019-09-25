@@ -5,7 +5,11 @@ import 'reflect-metadata';
 import * as TypeMoq from 'typemoq';
 import { IMock } from 'typemoq';
 
-import { createContainsPredicate, createRegexPredicate, createUniqueMentionsPredicate } from './message-predicates';
+import {
+	createChannelTypePredicate,
+	createContainsPredicate,
+	createRegexPredicate
+} from './message-predicates';
 
 describe('Message Predicates', () => {
 	let mockMessage: IMock<Message>;
@@ -63,6 +67,22 @@ describe('Message Predicates', () => {
 		it('failed match when message doesn\'t match regex', async () => {
 			const predicate = createRegexPredicate(/^!ping$/);
 			const isMatch = predicate(createMockMessage('text', 'text with !ping please'));
+
+			expect(isMatch).to.be.false;
+		});
+	});
+
+	describe('Channel Type', () => {
+		it('successful match when channel type matches the msg channel type', async () => {
+			const predicate = createChannelTypePredicate('dm');
+			const isMatch = predicate(createMockMessage('dm', 'fake msg'));
+
+			expect(isMatch).to.be.true;
+		});
+
+		it('failed match when channel type doesn\'t match the msg channel type', async () => {
+			const predicate = createChannelTypePredicate('text');
+			const isMatch = predicate(createMockMessage('dm', 'fake msg'));
 
 			expect(isMatch).to.be.false;
 		});

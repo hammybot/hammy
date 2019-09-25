@@ -22,6 +22,14 @@ export const createRegexPredicate = (testRegex: RegExp): MessageHandlerPredicate
 	};
 };
 
+export const createChannelTypePredicate = (
+	type: 'dm' | 'group' | 'text' | 'voice' | 'category' | 'news' | 'store'
+): MessageHandlerPredicate => {
+	return (msg: Message) => {
+		return msg.channel.type === type;
+	};
+};
+
 export const createUniqueMentionsPredicate = (numOfUniqueMentions: number, excludeBotMention: boolean): MessageHandlerPredicate => {
 	return (msg: Message) => {
 		const uniqueMentionsSet = new Set(msg.mentions.users.values());
@@ -32,14 +40,6 @@ export const createUniqueMentionsPredicate = (numOfUniqueMentions: number, exclu
 		});
 
 		return uniqueMentionsSet.size === numOfUniqueMentions;
-	};
-};
-
-export const createChannelTypePredicate = (
-	type: 'dm' | 'group' | 'text' | 'voice' | 'category' | 'news' | 'store'
-): MessageHandlerPredicate => {
-	return (msg: Message) => {
-		return msg.channel.type === type;
 	};
 };
 
