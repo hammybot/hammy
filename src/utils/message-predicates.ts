@@ -10,7 +10,7 @@ export const combinePredicates = (...matchers: MessageHandlerPredicate[]): Messa
 
 export const createContainsPredicate = (str: string, caseSensitive: boolean): MessageHandlerPredicate => {
 	return (msg: Message) => {
-		const messageContent = caseSensitive ? msg.content : msg.content.toLowerCase();
+		const messageContent = caseSensitive ? msg.cleanContent : msg.cleanContent.toLowerCase();
 		const matchString = caseSensitive ? str : str.toLowerCase();
 		return messageContent.includes(matchString);
 	};
