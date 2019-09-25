@@ -7,17 +7,21 @@ import { IMock } from 'typemoq';
 
 import { YtdlCreator } from '../../types';
 
+import { VoiceChannelService } from './voice-channel.service';
 import { PlayYoutubeUrlMessageHandler } from './youtube.handlers';
 
 describe('Youtube Handlers', () => {
 	let mockMessage: IMock<Message>;
 	let mockChannel: IMock<TextChannel>;
 	let mockYtdl: IMock<YtdlCreator>;
+	let mockVoiceChannelService: IMock<VoiceChannelService>;
 
 	beforeEach(() => {
 		mockYtdl = TypeMoq.Mock.ofType<YtdlCreator>();
 		mockMessage = TypeMoq.Mock.ofType(Message);
 		mockChannel = TypeMoq.Mock.ofInstance({ send: () => { }, type: '' as any } as TextChannel);
+		mockVoiceChannelService = TypeMoq.Mock.ofType(VoiceChannelService);
+
 		mockMessage.setup((mock) => mock.channel).returns(() => mockChannel.object as TextChannel);
 	});
 
@@ -25,13 +29,14 @@ describe('Youtube Handlers', () => {
 		mockYtdl.reset();
 		mockMessage.reset();
 		mockChannel.reset();
+		mockVoiceChannelService.reset();
 	});
 
 	describe('PlayYoutubeUrlMessageHandler', () => {
 		let sut: PlayYoutubeUrlMessageHandler;
 
 		beforeEach(() => {
-			sut = new PlayYoutubeUrlMessageHandler(mockYtdl.object);
+			sut = new PlayYoutubeUrlMessageHandler(mockYtdl.object, mockVoiceChannelService.object);
 		});
 
 		describe('Message Matching', () => {
@@ -75,6 +80,18 @@ describe('Youtube Handlers', () => {
 				const isMatch = predicate(createMockMessage('text', '!play https://www.youtube.com/watch?v=PHgc8Q6qTjc', true, true));
 
 				expect(isMatch).to.be.false;
+			});
+		});
+
+		describe('Handle Message', () => {
+			it('successful youtube stream created and streams to voice channel', async () => {
+				const youtubeCommand = '!play https://www.youtube.com/watch?v=PHgc8Q6qTjc';
+				await sut.handleMessage(createMockMessage('text', youtubeCommand));
+
+				mockYtdl.verify(mock => mock(youtubeCommand, TypeMoq.It.isAny()), TypeMoq.Times.once());
+				mockVoiceChannelService.verify(
+					channel => channel.streamToVoiceChannel(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once()
+				);
 			});
 		});
 	});

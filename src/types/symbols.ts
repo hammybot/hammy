@@ -15,5 +15,6 @@ export const SYMBOLS = {
 	WATOChallengeMessageHandler: Symbol('WATOChallengeMessageHandler'),
 	WATOResponseMessageHandler: Symbol('WATOResponseMessageHandler'),
 	WATODeclineMessageHandler: Symbol('WATODeclineMessageHandler'),
-	WATOBetMessageHandler: Symbol('WATOBetMessageHandler')
+	WATOBetMessageHandler: Symbol('WATOBetMessageHandler'),
+	VoiceChannelService: Symbol('VoiceChannelService')
 };

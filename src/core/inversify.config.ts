@@ -17,6 +17,7 @@ import {
 	WATODeclineMessageHandler,
 	WATOResponseMessageHandler,
 } from '../modules';
+import { VoiceChannelService } from '../modules/media/voice-channel.service';
 import { WATODatabase } from '../modules/wato/db/wato-database';
 import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
 
@@ -35,6 +36,7 @@ container.bind<StopwatchCreator>(SYMBOLS.StopwatchCreator).toDynamicValue(() => 
 container.bind<YtdlCreator>(SYMBOLS.YtdlCreator).toDynamicValue(
 	() => (url: string, opts?: ytdl.downloadOptions | undefined) => ytdl(url, opts)
 );
+container.bind<VoiceChannelService>(SYMBOLS.VoiceChannelService).to(VoiceChannelService);
 
 container.bind<PingMessageHandler>(SYMBOLS.PingMessageHandler).to(PingMessageHandler);
 container.bind<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler).to(PlayYoutubeUrlMessageHandler);

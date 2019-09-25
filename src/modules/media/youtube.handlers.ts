@@ -12,10 +12,15 @@ import {
 } from '../../utils';
 import { REGEX } from '../../utils/constants';
 
+import { VoiceChannelService } from './voice-channel.service';
+
 @injectable()
 export class PlayYoutubeUrlMessageHandler implements MessageHandler {
 
-	constructor(@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator) { }
+	constructor(
+		@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator,
+		@inject(SYMBOLS.VoiceChannelService) private _voiceChannelService: VoiceChannelService
+	) { }
 
 	messageHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
@@ -27,18 +32,8 @@ export class PlayYoutubeUrlMessageHandler implements MessageHandler {
 	}
 
 	async handleMessage(message: Message): Promise<void> {
-		const ytUrl = message.content.match(REGEX.COMMAND_PLAY_YOUTUBE);
-		if (!ytUrl || !ytUrl[0]) { return; }
+		const stream = this._ytdlCreator(message.cleanContent, { filter: 'audioonly' });
 
-		const voiceChannel = message.member.voiceChannel;
-
-		const connection = await voiceChannel.join();
-		const stream = this._ytdlCreator(ytUrl[0], { filter: 'audioonly' });
-
-		const dispatcher = connection.playStream(stream);
-		dispatcher.on('end', () => {
-			dispatcher.end();
-			voiceChannel.leave();
-		});
+		this._voiceChannelService.streamToVoiceChannel(message.member.voiceChannel, stream);
 	}
 }
