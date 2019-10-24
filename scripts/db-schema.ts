@@ -16,6 +16,7 @@ export const createChallengesTable = (schema: string, owner: string): string => 
 			"ChallengerId" text NOT NULL,
 			"ChallengedId" text NOT NULL,
 			"ChannelId" text NOT NULL,
+			"StatusMessageId" text,
 			"Description" text NOT NULL,
 			"Status" "challengestatus" NOT NULL,
 			"BetLimit" bigint,

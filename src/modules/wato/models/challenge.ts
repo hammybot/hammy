@@ -1,12 +1,11 @@
-import { Snowflake } from 'discord.js';
-
 import { ChallengeStatus } from './challenge-status';
 
 export interface Challenge {
 	Id?: number;
-	ChallengerId: Snowflake;
-	ChallengedId: Snowflake;
-	ChannelId: Snowflake;
+	ChallengerId: string;
+	ChallengedId: string;
+	ChannelId: string;
+	StatusMessageId?: string;
 	Description: string;
 	Status: ChallengeStatus;
 	BetLimit?: number | undefined;
