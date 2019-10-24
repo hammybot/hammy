@@ -14,6 +14,7 @@ import {
 import { WATODatabase } from './db/wato-database';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
+import { createWatoStatusEmbed } from './wato-helper';
 
 @injectable()
 export class WATOChallengeMessageHandler implements MessageHandler {
@@ -28,6 +29,7 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 	}
 
 	async handleMessage(message: Message): Promise<void> {
+
 		const challenger = message.author;
 		const challenged = message.mentions.users.values().next().value as User;
 
@@ -57,5 +59,13 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		};
 
 		await this._watoDatabase.createNewChallenge(challenge);
+
+		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
+		if (!activeChallenge) { return; }
+
+		const statusEmbed = await createWatoStatusEmbed(activeChallenge, message.client);
+
+		const statusMessage = await message.channel.send(statusEmbed) as Message;
+		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
 	}
 }

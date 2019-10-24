@@ -24,6 +24,14 @@ export const getUserActiveChallengeSql = (user: User) => {
 	`;
 };
 
+export const setStatusMessageIdSql = (challenge: Challenge, statusMessageId: string) => {
+	return SQL`
+		UPDATE public.challenges
+		SET "StatusMessageId"=${statusMessageId}
+		WHERE "Id"=${challenge.Id};
+	`;
+};
+
 export const setBetLimitSql = (challenge: Challenge, betLimit: number) => {
 	return SQL`
 		UPDATE public.challenges

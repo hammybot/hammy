@@ -13,6 +13,7 @@ import {
 	setBetLimitSql,
 	setChallengedBetSql,
 	setChallengerBetSql,
+	setStatusMessageIdSql,
 	updateChallengeStatusSql
 } from './wato-sql';
 
@@ -29,6 +30,10 @@ export class WATODatabase {
 		if (result.rowCount === 0) { return null; }
 
 		return result.rows[0];
+	}
+
+	async setStatusMessageId(challenge: Challenge, statusMessageId: string) {
+		await this._pool.query(setStatusMessageIdSql(challenge, statusMessageId));
 	}
 
 	async setBetLimit(challenge: Challenge, betLimit: number): Promise<void> {

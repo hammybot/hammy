@@ -7,6 +7,7 @@ import { combinePredicates, createChannelTypePredicate, createRegexPredicate, RE
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
+import { createWatoResultsEmbed } from './wato-helper';
 
 @injectable()
 export class WATOBetMessageHandler implements MessageHandler {
@@ -60,8 +61,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 		const originalChannel = message.client.channels.get(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		// tslint:disable-next-line: max-line-length
-		originalChannel.send(`<@${activeChallenge.ChallengerId}> bet ${activeChallenge.ChallengerBet} and <@${activeChallenge.ChallengedId}> bet ${activeChallenge.ChallengedBet}`);
-		originalChannel.send(`<@${winnerId}> is the winner!`);
+		const resultsEmbed = await createWatoResultsEmbed(winnerId, activeChallenge, message.client);
+		originalChannel.send(resultsEmbed);
 	}
 }
