@@ -7,7 +7,7 @@ import { combinePredicates, createChannelTypePredicate, createRegexPredicate, cr
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
-import { createWatoStatusEmbed } from './wato-helper';
+import { createWatoDmEmbed, createWatoStatusEmbed, createWatoValidationEmbed } from './wato-helper';
 
 @injectable()
 export class WATOResponseMessageHandler implements MessageHandler {
@@ -33,9 +33,10 @@ export class WATOResponseMessageHandler implements MessageHandler {
 			activeChallenge.ChallengedId !== message.author.id) { return; }
 
 		if (!Number.isSafeInteger(betLimit) || betLimit <= 1 || betLimit > Number.MAX_SAFE_INTEGER) {
-			await message.channel.send(`
+			const validationEmbed = createWatoValidationEmbed(`
 			<@${message.author.id}> Your bet needs to be between 1 and 9,007,199,254,740,991
-		`);
+			`);
+			await message.channel.send(validationEmbed);
 			return;
 		}
 
@@ -46,8 +47,8 @@ export class WATOResponseMessageHandler implements MessageHandler {
 
 		if (!challenger || !challenged) { return; }
 
-		await challenger.send(`Place your bet for your odds challenge with ${challenged.user.username}`);
-		await challenged.send(`Place your bet for your odds challenge with ${challenger.user.username}`);
+		await challenger.send(createWatoDmEmbed(challenged.user.username, betLimit));
+		await challenged.send(createWatoDmEmbed(challenger.user.username, betLimit));
 
 		const originalChannel = message.client.channels.get(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }

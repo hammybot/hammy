@@ -7,7 +7,7 @@ import { combinePredicates, createChannelTypePredicate, createRegexPredicate, RE
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
-import { createWatoResultsEmbed } from './wato-helper';
+import { createWatoResultsEmbed, createWatoValidationEmbed } from './wato-helper';
 
 @injectable()
 export class WATOBetMessageHandler implements MessageHandler {
@@ -32,9 +32,10 @@ export class WATOBetMessageHandler implements MessageHandler {
 		}
 
 		if (!Number.isSafeInteger(bet) || bet <= 1 || bet > activeChallenge.BetLimit) {
-			await message.channel.send(`
+			const validationEmbed = createWatoValidationEmbed(`
 			<@${message.author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
-		`);
+			`);
+			await message.channel.send(validationEmbed);
 			return;
 		}
 

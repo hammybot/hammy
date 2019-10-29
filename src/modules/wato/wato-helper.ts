@@ -1,4 +1,4 @@
-import { Client, RichEmbed, User } from 'discord.js';
+import { Client, GuildMember, RichEmbed, User } from 'discord.js';
 
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
@@ -53,7 +53,21 @@ export const createWatoResultsEmbed = async (winnerId: string, challenge: Challe
 		.setColor('#0099ff')
 		.setTitle(`\`${winningUser.username}\` has defeated \`${losingUser.username}\` in a game of odds!`)
 		.setDescription(`\`\`\`${challenge.Description}\`\`\``)
-		.setThumbnail(`${winningUser.avatarURL}`)
+		.setThumbnail(`${winningUser.displayAvatarURL}`)
 		.addField(`${winningUser.username}'s bet`, `${winningBet}`, true)
 		.addField(`${losingUser.username}'s bet`, `${losingBet}`, true);
+};
+
+export const createWatoDmEmbed = (username: string, betLimit: number): RichEmbed => {
+	return new RichEmbed()
+		.setColor('#ffffff')
+		.setTitle(`WATO Challenge - Bet Limit: ${betLimit}`)
+		.setDescription(`Place your bet for your odds challenge with ${username}`);
+};
+
+export const createWatoValidationEmbed = (errMessage: string): RichEmbed => {
+	return new RichEmbed()
+		.setColor('#ff2821')
+		.setTitle(`WATO Error`)
+		.setDescription(`${errMessage}`);
 };
