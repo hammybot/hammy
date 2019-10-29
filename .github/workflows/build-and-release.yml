@@ -1,7 +1,7 @@
 on:
     push:
         branches:
-        - master
+            - master
 name: Push 'latest' Image to Docker Hub
 jobs:
     buildDockerImage:
@@ -10,22 +10,17 @@ jobs:
         steps:
             - uses: actions/checkout@master
             - name: Build Docker image
-              uses: actions/docker/cli@master
               env:
                   APPLICATION_NAME: hammy
                   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-              with:
-                  args:
-                      build -t "$DOCKER_USERNAME/$APPLICATION_NAME:latest" .
+              run: docker build -t $DOCKER_USERNAME/$APPLICATION_NAME:latest .
             - name: Docker Login
-              uses: actions/docker/login@master
               env:
                   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
                   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+              run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
             - name: Push image to Docker Hub
-              uses: actions/docker/cli@master
               env:
                   APPLICATION_NAME: hammy
                   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-              with:
-                  args: push $DOCKER_USERNAME/$APPLICATION_NAME
+              run: docker push $DOCKER_USERNAME/$APPLICATION_NAME:latest
