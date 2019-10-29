@@ -1,4 +1,4 @@
-import { Message, User } from 'discord.js';
+import { Message, MessageMentions, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
@@ -57,7 +57,7 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 			ChallengerId: challenger.id,
 			ChallengedId: challenged.id,
 			ChannelId: message.channel.id,
-			Description: message.cleanContent,
+			Description: this.removeMentions(message.content),
 			Status: ChallengeStatus.PendingAccept
 		};
 
@@ -70,5 +70,9 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 
 		const statusMessage = await message.channel.send(statusEmbed) as Message;
 		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
+	}
+
+	private removeMentions(message: string): string {
+		return message.replace(MessageMentions.USERS_PATTERN, '').trim();
 	}
 }
