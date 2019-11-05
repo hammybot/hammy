@@ -65,11 +65,12 @@ export const createWatoResultsEmbed = async (winnerId: string, challenge: Challe
 		.addField(`${losingUser.username}'s bet`, `${losingBet}`, true);
 };
 
-export const createWatoDmEmbed = (username: string, betLimit: number): RichEmbed => {
+export const createWatoDmEmbed = (username: string, betLimit: number, challenge: Challenge): RichEmbed => {
 	return new RichEmbed()
 		.setColor('#ffffff')
-		.setTitle(`WATO Challenge - Bet Limit: ${betLimit}`)
-		.setDescription(`Place your bet for your odds challenge with ${username}`)
+		.setTitle(`__${username}__ challenged you!`)
+		.setDescription(`\`\`\`${challenge.Description}\`\`\``)
+		.addField(`**Status**`, `Respond here with a number between 1 and ${betLimit}`, true)
 		.setFooter(getHelpFooterText(), QUESTION_MARK_ICON);
 };
 

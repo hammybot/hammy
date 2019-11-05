@@ -47,8 +47,8 @@ export class WATOResponseMessageHandler implements MessageHandler {
 
 		if (!challenger || !challenged) { return; }
 
-		await challenger.send(createWatoDmEmbed(challenged.user.username, betLimit));
-		await challenged.send(createWatoDmEmbed(challenger.user.username, betLimit));
+		await challenger.send(createWatoDmEmbed(challenged.user.username, betLimit, activeChallenge));
+		await challenged.send(createWatoDmEmbed(challenger.user.username, betLimit, activeChallenge));
 
 		const originalChannel = message.client.channels.get(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }

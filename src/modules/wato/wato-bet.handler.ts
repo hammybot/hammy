@@ -40,10 +40,14 @@ export class WATOBetMessageHandler implements MessageHandler {
 		}
 
 		if (activeChallenge.ChallengerId === message.author.id) {
+			if (activeChallenge.ChallengerBet) { return; }
 			await this._watoDatabase.setChallengerBet(activeChallenge, bet);
 		} else {
+			if (activeChallenge.ChallengedBet) { return; }
 			await this._watoDatabase.setChallengedBet(activeChallenge, bet);
 		}
+
+		await message.channel.send(`Got it!`);
 
 		activeChallenge = await this._watoDatabase.getUserActiveChallenge(message.author);
 
