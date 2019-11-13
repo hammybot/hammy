@@ -13,11 +13,14 @@ import {
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
-import { createWatoStatusEmbed } from './wato-helper';
+import { WatoHelperService } from './wato-helper.service';
 
 @injectable()
 export class WATODeclineMessageHandler implements MessageHandler {
-	constructor(@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase) { }
+	constructor(
+		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
+		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
+	) { }
 
 	messageHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
@@ -42,7 +45,7 @@ export class WATODeclineMessageHandler implements MessageHandler {
 
 		// workaround for now
 		activeChallenge.Status = ChallengeStatus.Declined;
-		const newStatusEmbed = await createWatoStatusEmbed(activeChallenge, message.client);
+		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, message.client);
 		statusMessage.edit(newStatusEmbed);
 	}
 }

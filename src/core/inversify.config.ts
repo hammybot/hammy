@@ -15,10 +15,12 @@ import {
 	WATOBetMessageHandler,
 	WATOChallengeMessageHandler,
 	WATODeclineMessageHandler,
+	WATOHelpMessageHandler,
 	WATOResponseMessageHandler,
 } from '../modules';
 import { VoiceChannelService } from '../modules/media/voice-channel.service';
 import { WATODatabase } from '../modules/wato/db/wato-database';
+import { WatoHelperService } from '../modules/wato/wato-helper.service';
 import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
 
 import { Bot } from './bot';
@@ -37,6 +39,7 @@ container.bind<YtdlCreator>(SYMBOLS.YtdlCreator).toDynamicValue(
 	() => (url: string, opts?: ytdl.downloadOptions | undefined) => ytdl(url, opts)
 );
 container.bind<VoiceChannelService>(SYMBOLS.VoiceChannelService).to(VoiceChannelService);
+container.bind<WatoHelperService>(SYMBOLS.WatoHelperService).to(WatoHelperService);
 
 container.bind<PingMessageHandler>(SYMBOLS.PingMessageHandler).to(PingMessageHandler);
 container.bind<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler).to(PlayYoutubeUrlMessageHandler);
@@ -47,6 +50,7 @@ container.bind<WATOChallengeMessageHandler>(SYMBOLS.WATOChallengeMessageHandler)
 container.bind<WATOResponseMessageHandler>(SYMBOLS.WATOResponseMessageHandler).to(WATOResponseMessageHandler);
 container.bind<WATODeclineMessageHandler>(SYMBOLS.WATODeclineMessageHandler).to(WATODeclineMessageHandler);
 container.bind<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler).to(WATOBetMessageHandler);
+container.bind<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler).to(WATOHelpMessageHandler);
 
 container.bind<MessageHandler[]>(SYMBOLS.MessageHandlers).toConstantValue(_createHandlers());
 
@@ -62,6 +66,7 @@ function _createHandlers(): MessageHandler[] {
 		container.get<WATOChallengeMessageHandler>(SYMBOLS.WATOChallengeMessageHandler),
 		container.get<WATOResponseMessageHandler>(SYMBOLS.WATOResponseMessageHandler),
 		container.get<WATODeclineMessageHandler>(SYMBOLS.WATODeclineMessageHandler),
-		container.get<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler)
+		container.get<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler),
+		container.get<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler)
 	];
 }

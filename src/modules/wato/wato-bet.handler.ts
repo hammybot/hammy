@@ -7,11 +7,14 @@ import { combinePredicates, createChannelTypePredicate, createRegexPredicate, RE
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
-import { createWatoResultsEmbed, createWatoValidationEmbed } from './wato-helper';
+import { WatoHelperService } from './wato-helper.service';
 
 @injectable()
 export class WATOBetMessageHandler implements MessageHandler {
-	constructor(@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase) { }
+	constructor(
+		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
+		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
+	) { }
 
 	messageHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
@@ -32,7 +35,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 		}
 
 		if (!Number.isSafeInteger(bet) || bet <= 1 || bet > activeChallenge.BetLimit) {
-			const validationEmbed = createWatoValidationEmbed(`
+			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`
 			<@${message.author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
 			`);
 			await message.channel.send(validationEmbed);
@@ -66,7 +69,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 		const originalChannel = message.client.channels.get(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const resultsEmbed = await createWatoResultsEmbed(winnerId, activeChallenge, message.client);
+		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, activeChallenge, message.client);
 		originalChannel.send(resultsEmbed);
 	}
 }

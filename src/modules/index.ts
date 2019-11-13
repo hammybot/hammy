@@ -6,4 +6,5 @@ export * from './wato/wato-bet.handler';
 export * from './wato/wato-challenge.handler';
 export * from './wato/wato-decline.handler';
 export * from './wato/wato-response.handler';
+export * from './wato/wato-help.handler';
 

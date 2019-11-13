@@ -14,11 +14,14 @@ import {
 import { WATODatabase } from './db/wato-database';
 import { Challenge } from './models/challenge';
 import { ChallengeStatus } from './models/challenge-status';
-import { createWatoStatusEmbed, createWatoValidationEmbed } from './wato-helper';
+import { WatoHelperService } from './wato-helper.service';
 
 @injectable()
 export class WATOChallengeMessageHandler implements MessageHandler {
-	constructor(@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase) { }
+	constructor(
+		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
+		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
+	) { }
 
 	messageHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
@@ -34,21 +37,23 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		const challenged = message.mentions.users.values().next().value as User;
 
 		if (challenger.bot || challenged.bot) {
-			const validationEmbed = createWatoValidationEmbed(`Bot's can't play the odds game...`);
+			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`Bot's can't play the odds game...`);
 			await message.channel.send(validationEmbed);
 			return;
 		}
 
 		const challengedActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenged);
 		if (challengedActiveChallenge) {
-			const validationEmbed = createWatoValidationEmbed(`<@${challenged.id}> is already in a challenge! They need to finish that one first.`);
+			const validationEmbed = this._watoHelper.createWatoValidationEmbed(
+				`<@${challenged.id}> is already in a challenge! They need to finish that one first.`
+			);
 			await message.channel.send(validationEmbed);
 			return;
 		}
 
 		const challengerActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (challengerActiveChallenge) {
-			const validationEmbed = createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);
+			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);
 			await message.channel.send(validationEmbed);
 			return;
 		}
@@ -66,7 +71,7 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (!activeChallenge) { return; }
 
-		const statusEmbed = await createWatoStatusEmbed(activeChallenge, message.client);
+		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, message.client);
 
 		const statusMessage = await message.channel.send(statusEmbed) as Message;
 		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
