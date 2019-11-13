@@ -59,49 +59,64 @@ export class WatoHelperService {
 
 	createGenericWatoHelpMessage(authorUsername: string, botUsername: string): RichEmbed {
 		return new RichEmbed()
-			.setColor('#4dff21')
+			.setColor('#1ed8f7')
 			.setTitle('How to Play WATO (What are the Odds?)')
 			.addField(
-				'1. Challenge someone by mentioning them like below:',
+				'**1. Challenge someone by mentioning them like below:**',
 				`\`@${authorUsername} what are the odds that you challenge me?\``
 			)
 			.addField(
-				'2a. The challenged player will respond mentioning you and with an odd:',
+				'**2a. The challenged player will respond mentioning you and with an odd:**',
 				`\`@${botUsername} 1326\``
 			)
 			.addField(
-				'3. If an odd was given, I\'ll DM both of you asking for a bet! Just respond with a number.',
+				'**3. If an odd was given, I\'ll DM both of you asking for a bet! Just respond with a number.**',
 				`\`100\``
 			)
 			.addField(
-				'4. Once both players have bet, I\'ll respond in the original channel with the winner!',
+				'**4. Once both players have bet, I\'ll respond in the original channel with the winner!**',
 				'If the challenged player guesses the same number as you, you win!'
 			);
 	}
 
-	createWaitingOnOpponentAcceptHelpMessage(): RichEmbed {
-		return new RichEmbed();
-		// return 'Waiting on your opponent to accept!';
+	createWaitingOnOpponentAcceptHelpMessage(author: User, opponent: User): RichEmbed {
+		return new RichEmbed()
+			.setColor('#1ed8f7')
+			.setTitle('WATO Help - You\'re in an active challenge!')
+			.addField(
+				`**You\'re waiting for ${opponent.username} to accept or decline!**`,
+				`\`@${author.username} 1326\``
+			);
 	}
 
-	createWaitingOnAuthorAcceptHelpMessage(): RichEmbed {
-		return new RichEmbed();
-		// return 'Waiting on you to accept!';
+	createWaitingOnAuthorAcceptHelpMessage(opponent: User): RichEmbed {
+		return new RichEmbed()
+			.setColor('#1ed8f7')
+			.setTitle('WATO Help - You\'re in an active challenge!')
+			.addField(
+				`**You need to respond to the challenge from ${opponent.username}**`,
+				`\`@${opponent.username} 1326\``
+			);
 	}
 
-	createWaitingOnOpponentBetHelpMessage(): RichEmbed {
-		return new RichEmbed();
-		// return 'Waiting on your opponents bet!';
+	createWaitingOnOpponentBetHelpMessage(opponent: User): RichEmbed {
+		return new RichEmbed()
+			.setColor('#1ed8f7')
+			.setTitle('WATO Help - You\'re in an active challenge!')
+			.addField(
+				`**You\'re waiting for ${opponent.username}'s bet**`,
+				`They need to answer my DM`
+			);
 	}
 
 	createWaitingOnAuthorBetHelpMessage(): RichEmbed {
-		return new RichEmbed();
-		// return 'Waiting on your bet!';
-	}
-
-	createWaitingOnBothBetsHelpMessage(): RichEmbed {
-		return new RichEmbed();
-		// return 'Waiting on both bets!';
+		return new RichEmbed()
+			.setColor('#1ed8f7')
+			.setTitle('WATO Help - You\'re in an active challenge!')
+			.addField(
+				`**You need to respond with a bet to my DM! Just respond with a number.`,
+				`\`100\``
+			);
 	}
 
 	private getChallengeStatusText(challengeStatus: ChallengeStatus, challengedUser: User): string {

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Message, TextChannel } from 'discord.js';
+import { Message, TextChannel, User } from 'discord.js';
 import 'mocha';
 import 'reflect-metadata';
 import * as TypeMoq from 'typemoq';
@@ -88,7 +88,10 @@ describe('WATOHelpMessageHandler', () => {
 				}));
 			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengerId));
 
-			mockWatoHelperService.verify(mock => mock.createWaitingOnOpponentAcceptHelpMessage(), TypeMoq.Times.once());
+			mockWatoHelperService.verify(
+				mock => mock.createWaitingOnOpponentAcceptHelpMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+				TypeMoq.Times.once()
+			);
 		});
 
 		it('active challenge, waiting on your input, gets special context', async () => {
@@ -103,7 +106,7 @@ describe('WATOHelpMessageHandler', () => {
 				}));
 			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengedId));
 
-			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorAcceptHelpMessage(), TypeMoq.Times.once());
+			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorAcceptHelpMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 
 		it('active challenge, waiting on opponent bet, gets special context', async () => {
@@ -120,7 +123,7 @@ describe('WATOHelpMessageHandler', () => {
 				}));
 			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengerId));
 
-			mockWatoHelperService.verify(mock => mock.createWaitingOnOpponentBetHelpMessage(), TypeMoq.Times.once());
+			mockWatoHelperService.verify(mock => mock.createWaitingOnOpponentBetHelpMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 
 		it('active challenge, waiting on your bet, gets special context', async () => {
@@ -154,12 +157,13 @@ describe('WATOHelpMessageHandler', () => {
 				}));
 			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengerId));
 
-			mockWatoHelperService.verify(mock => mock.createWaitingOnBothBetsHelpMessage(), TypeMoq.Times.once());
+			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorBetHelpMessage(), TypeMoq.Times.once());
 		});
 
 		function createMockMessage(authorId: string): Message {
 			mockMessage.setup(msg => msg.client).returns(() => {
 				return {
+					fetchUser: () => new Promise<User>((resolve) => resolve({} as any)),
 					user: {
 						username: ''
 					}

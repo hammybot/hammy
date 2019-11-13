@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, RichEmbed, User } from 'discord.js';
+import { Client, Message, MessageEmbed, RichEmbed, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
@@ -26,29 +26,34 @@ export class WATOHelpMessageHandler implements MessageHandler {
 	async handleMessage(message: Message): Promise<void> {
 		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(message.author);
 
-		message.author.send(this.getHelpMessage(activeChallenge, message.author, message.client.user));
+		const helpEmbed = await this.getHelpMessage(activeChallenge, message.author, message.client);
+		message.author.send(helpEmbed);
 	}
 
-	private getHelpMessage(activeChallenge: Challenge | null, author: User, bot: User): RichEmbed {
-		if (!activeChallenge) { return this._watoHelper.createGenericWatoHelpMessage(author.username, bot.username); }
+	private async getHelpMessage(activeChallenge: Challenge | null, author: User, client: Client): Promise<RichEmbed> {
+		if (!activeChallenge) { return this._watoHelper.createGenericWatoHelpMessage(author.username, client.user.username); }
 
 		const authorIsChallenger = activeChallenge.ChallengerId === author.id;
+		const opponent = await client.fetchUser(authorIsChallenger ? activeChallenge.ChallengedId : activeChallenge.ChallengerId);
+
+		if (!opponent) { return this._watoHelper.createGenericWatoHelpMessage(author.username, client.user.username); }
+
 		switch (activeChallenge.Status) {
 			case ChallengeStatus.PendingAccept:
 				if (authorIsChallenger) {
-					return this._watoHelper.createWaitingOnOpponentAcceptHelpMessage();
+					return this._watoHelper.createWaitingOnOpponentAcceptHelpMessage(author, opponent);
 				}
-				return this._watoHelper.createWaitingOnAuthorAcceptHelpMessage();
+				return this._watoHelper.createWaitingOnAuthorAcceptHelpMessage(opponent);
 			case ChallengeStatus.PendingBets:
 				if (!activeChallenge.ChallengedBet && !activeChallenge.ChallengerBet) {
-					return this._watoHelper.createWaitingOnBothBetsHelpMessage();
+					return this._watoHelper.createWaitingOnAuthorBetHelpMessage();
 				}
 				if (authorIsChallenger && !activeChallenge.ChallengerBet) {
 					return this._watoHelper.createWaitingOnAuthorBetHelpMessage();
 				}
-				return this._watoHelper.createWaitingOnOpponentBetHelpMessage();
+				return this._watoHelper.createWaitingOnOpponentBetHelpMessage(opponent);
 			default:
-				return this._watoHelper.createGenericWatoHelpMessage(author.username, bot.username);
+				return this._watoHelper.createGenericWatoHelpMessage(author.username, client.user.username);
 		}
 	}
 }
