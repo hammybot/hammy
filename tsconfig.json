@@ -2,7 +2,8 @@
 	"compilerOptions": {
 		"types": [
 			"reflect-metadata",
-			"node"
+			"node",
+			"mocha"
 		],
 		"lib": [
 			"es6",
