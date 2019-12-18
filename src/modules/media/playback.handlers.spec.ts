@@ -1,68 +1,92 @@
 import { expect } from 'chai';
-import { Message, TextChannel } from 'discord.js';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { StreamDispatcher } from 'discord.js';
 import 'mocha';
 import 'reflect-metadata';
 import * as TypeMoq from 'typemoq';
-import { IMock } from 'typemoq';
+import { IMock, Times } from 'typemoq';
+
+import { DiscordMessage, PredicateHelper, REGEX } from '../../utils';
 
 import { PauseMediaMessageHandler, ResumeMediaMessageHandler, StopMediaMessageHandler } from './playback.handlers';
 
 describe('Playback Handlers', () => {
-	let mockMessage: IMock<Message>;
-	let mockChannel: IMock<TextChannel>;
+	let mockMessage: IMock<DiscordMessage>;
+	let mockPredicateHelper: IMock<PredicateHelper>;
+	let mockDispatcher: IMock<StreamDispatcher>;
 
 	beforeEach(() => {
-		mockMessage = TypeMoq.Mock.ofType(Message);
-		mockChannel = TypeMoq.Mock.ofInstance({ send: () => { }, type: '' as any } as TextChannel);
-		mockMessage.setup((mock) => mock.channel).returns(() => mockChannel.object as TextChannel);
+		chai.use(chaiAsPromised);
+
+		mockMessage = TypeMoq.Mock.ofType(DiscordMessage);
+		mockPredicateHelper = TypeMoq.Mock.ofType(PredicateHelper);
+		mockDispatcher = TypeMoq.Mock.ofInstance({ pause: () => { }, resume: () => { }, end: () => { } } as StreamDispatcher);
 	});
 
 	afterEach(() => {
 		mockMessage.reset();
-		mockChannel.reset();
+		mockPredicateHelper.reset();
+		mockDispatcher.reset();
 	});
 
 	describe('PauseMediaMessageHandler', () => {
 		let sut: PauseMediaMessageHandler;
 
 		beforeEach(() => {
-			sut = new PauseMediaMessageHandler();
+			sut = new PauseMediaMessageHandler(mockPredicateHelper.object);
 		});
 
-		describe('Message Matching', () => {
-			it('successful match when !pause message in text channel and user in voice', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!pause', true, true));
+		describe('Setting up Predicate', () => {
+			it('sets up channel type predicate of text', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.true;
+				mockPredicateHelper.verify(
+					mp => mp.createChannelTypePredicate(TypeMoq.It.isValue('text')),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when !pause message not in text channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('dm', '!pause', true, true));
+			it('sets up regex predicate for command pause', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createRegexPredicate(TypeMoq.It.isValue(REGEX.COMMAND_PAUSE)),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when no !pause message', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!notpause', true, true));
+			it('sets up predicate for member required in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createUserInVoiceChannelPredicate(),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when user not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!pause', false, true));
+			it('sets up predicate for bot playing media in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createBotPlayingMediaPredicate(),
+					TypeMoq.Times.once()
+				);
+			});
+		});
+
+		describe('Handle Message', () => {
+			it('no errors returned when dispatcher is null', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => null);
+				await expect(sut.handleMessage(mockMessage.object)).to.not.be.rejectedWith(Error);
 			});
 
-			it('no match when bot not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!pause', true, false));
+			it('if dispatching, verify that pause function is called', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => mockDispatcher.object);
 
-				expect(isMatch).to.be.false;
+				await sut.handleMessage(mockMessage.object);
+
+				mockDispatcher.verify(md => md.pause(), Times.once());
 			});
 		});
 	});
@@ -71,43 +95,59 @@ describe('Playback Handlers', () => {
 		let sut: ResumeMediaMessageHandler;
 
 		beforeEach(() => {
-			sut = new ResumeMediaMessageHandler();
+			sut = new ResumeMediaMessageHandler(mockPredicateHelper.object);
 		});
 
-		describe('Message Matching', () => {
-			it('successful match when !resume message in text channel and user in voice', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!resume', true, true));
+		describe('Setting up Predicate', () => {
+			it('sets up channel type predicate of text', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.true;
+				mockPredicateHelper.verify(
+					mp => mp.createChannelTypePredicate(TypeMoq.It.isValue('text')),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when !resume message not in text channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('dm', '!resume', true, true));
+			it('sets up regex predicate for command resume', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createRegexPredicate(TypeMoq.It.isValue(REGEX.COMMAND_RESUME)),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when no !pause message', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!notresume', true, true));
+			it('sets up predicate for member required in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createUserInVoiceChannelPredicate(),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when user not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!resume', false, true));
+			it('sets up predicate for bot playing media in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createBotPlayingMediaPredicate(),
+					TypeMoq.Times.once()
+				);
+			});
+		});
+
+		describe('Handle Message', () => {
+			it('no errors returned when dispatcher is null', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => null);
+				await expect(sut.handleMessage(mockMessage.object)).to.not.be.rejectedWith(Error);
 			});
 
-			it('no match when bot not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!resume', true, false));
+			it('if dispatching, verify that resume function is called', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => mockDispatcher.object);
 
-				expect(isMatch).to.be.false;
+				await sut.handleMessage(mockMessage.object);
+
+				mockDispatcher.verify(md => md.resume(), Times.once());
 			});
 		});
 	});
@@ -116,59 +156,60 @@ describe('Playback Handlers', () => {
 		let sut: StopMediaMessageHandler;
 
 		beforeEach(() => {
-			sut = new StopMediaMessageHandler();
+			sut = new StopMediaMessageHandler(mockPredicateHelper.object);
 		});
 
-		describe('Message Matching', () => {
-			it('successful match when !stop message in text channel and user in voice', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!stop', true, true));
+		describe('Setting up Predicate', () => {
+			it('sets up channel type predicate of text', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.true;
+				mockPredicateHelper.verify(
+					mp => mp.createChannelTypePredicate(TypeMoq.It.isValue('text')),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when !stop message not in text channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('dm', '!stop', true, true));
+			it('sets up regex predicate for command stop', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createRegexPredicate(TypeMoq.It.isValue(REGEX.COMMAND_STOP)),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when no !stop message', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!notstop', true, true));
+			it('sets up predicate for member required in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createUserInVoiceChannelPredicate(),
+					TypeMoq.Times.once()
+				);
 			});
 
-			it('no match when user not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!stop', false, true));
+			it('sets up predicate for bot playing media in voice channel', async () => {
+				sut.createHandlerPredicate();
 
-				expect(isMatch).to.be.false;
+				mockPredicateHelper.verify(
+					mp => mp.createBotPlayingMediaPredicate(),
+					TypeMoq.Times.once()
+				);
+			});
+		});
+
+		describe('Handle Message', () => {
+			it('no errors returned when dispatcher is null', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => null);
+				await expect(sut.handleMessage(mockMessage.object)).to.not.be.rejectedWith(Error);
 			});
 
-			it('no match when bot not in voice channel', async () => {
-				const predicate = sut.messageHandlerPredicate();
-				const isMatch = predicate(createMockMessage('text', '!stop', true, false));
+			it('if dispatching, verify that end function is called', async () => {
+				mockMessage.setup(md => md.getDispatcher()).returns(() => mockDispatcher.object);
 
-				expect(isMatch).to.be.false;
+				await sut.handleMessage(mockMessage.object);
+
+				mockDispatcher.verify(md => md.end(), Times.once());
 			});
 		});
 	});
-
-	function createMockMessage(
-		type: string, content: string = '', userInVoice: boolean = true, botPlaying: boolean = true
-	): Message {
-		mockMessage.setup(mock => mock.cleanContent).returns(() => content);
-		mockChannel.setup(mock => mock.type).returns(() => type as any);
-
-		mockMessage.object.member = userInVoice ? {
-			voiceChannel: {
-				connection: botPlaying ? { dispatcher: {} } : null
-			}
-		} as any : {};
-
-		return mockMessage.object;
-	}
 });

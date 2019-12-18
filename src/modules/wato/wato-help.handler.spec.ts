@@ -1,9 +1,10 @@
-import { expect } from 'chai';
-import { Message, TextChannel, User } from 'discord.js';
+import { User } from 'discord.js';
 import 'mocha';
 import 'reflect-metadata';
 import * as TypeMoq from 'typemoq';
-import { IMock } from 'typemoq';
+import { IMock, Times } from 'typemoq';
+
+import { DiscordMessage, PredicateHelper, REGEX } from '../../utils';
 
 import { WATODatabase } from './db/wato-database';
 import { Challenge } from './models/challenge';
@@ -12,57 +13,37 @@ import { WATOHelpMessageHandler } from './wato-help.handler';
 import { WatoHelperService } from './wato-helper.service';
 
 describe('WATOHelpMessageHandler', () => {
+	let mockPredicateHelper: IMock<PredicateHelper>;
 	let mockWatoDatabase: IMock<WATODatabase>;
 	let mockWatoHelperService: IMock<WatoHelperService>;
 
-	let mockMessage: IMock<Message>;
-	let mockChannel: IMock<TextChannel>;
+	let mockMessage: IMock<DiscordMessage>;
 
 	let sut: WATOHelpMessageHandler;
 	beforeEach(() => {
+		mockPredicateHelper = TypeMoq.Mock.ofType(PredicateHelper);
 		mockWatoDatabase = TypeMoq.Mock.ofType(WATODatabase);
 		mockWatoHelperService = TypeMoq.Mock.ofType(WatoHelperService);
-		mockMessage = TypeMoq.Mock.ofType(Message);
-		mockChannel = TypeMoq.Mock.ofInstance({ send: () => { }, type: '' as any } as TextChannel);
+		mockMessage = TypeMoq.Mock.ofType(DiscordMessage);
 
-		mockMessage.setup((mock) => mock.channel).returns(() => mockChannel.object as TextChannel);
-
-		sut = new WATOHelpMessageHandler(mockWatoDatabase.object, mockWatoHelperService.object);
+		sut = new WATOHelpMessageHandler(mockPredicateHelper.object, mockWatoDatabase.object, mockWatoHelperService.object);
 	});
 
 	afterEach(() => {
+		mockPredicateHelper.reset();
 		mockWatoDatabase.reset();
 		mockMessage.reset();
-		mockChannel.reset();
 	});
 
-	describe('Message Matching', () => {
-		it('successful match when !wato message in text channel', async () => {
-			const predicate = sut.messageHandlerPredicate();
-			const isMatch = predicate(createMockMessage('text', '!wato'));
+	describe('Setting up Predicate', () => {
+		it('sets up regex predicate for command wato help', async () => {
+			sut.createHandlerPredicate();
 
-			expect(isMatch).to.be.true;
+			mockPredicateHelper.verify(
+				mp => mp.createRegexPredicate(TypeMoq.It.isValue(REGEX.WATO_HELP)),
+				Times.once()
+			);
 		});
-		it('successful match when !wato message in dm channel', async () => {
-			const predicate = sut.messageHandlerPredicate();
-			const isMatch = predicate(createMockMessage('dm', '!wato'));
-
-			expect(isMatch).to.be.true;
-		});
-
-		it('no match when no !wato message', async () => {
-			const predicate = sut.messageHandlerPredicate();
-			const isMatch = predicate(createMockMessage('text', '!notwato'));
-
-			expect(isMatch).to.be.false;
-		});
-
-		function createMockMessage(type: string, content: string = ''): Message {
-			mockMessage.setup(mock => mock.cleanContent).returns(() => content);
-			mockChannel.setup(mock => mock.type).returns(() => type as any);
-
-			return mockMessage.object;
-		}
 	});
 
 	describe('Handle Message', () => {
@@ -160,8 +141,8 @@ describe('WATOHelpMessageHandler', () => {
 			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorBetHelpMessage(), TypeMoq.Times.once());
 		});
 
-		function createMockMessage(authorId: string): Message {
-			mockMessage.setup(msg => msg.client).returns(() => {
+		function createMockMessage(authorId: string): DiscordMessage {
+			mockMessage.setup(msg => msg.getClient()).returns(() => {
 				return {
 					fetchUser: () => new Promise<User>((resolve) => resolve({} as any)),
 					user: {
@@ -170,11 +151,13 @@ describe('WATOHelpMessageHandler', () => {
 				} as any;
 			});
 
-			mockMessage.object.author = {
-				id: authorId,
-				username: '',
-				send: () => { }
-			} as any;
+			mockMessage.setup(msg => msg.getAuthorUser()).returns(() => {
+				return {
+					id: authorId,
+					username: '',
+					send: () => { }
+				} as any;
+			});
 
 			return mockMessage.object;
 		}

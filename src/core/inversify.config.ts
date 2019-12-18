@@ -18,12 +18,13 @@ import {
 	WATOHelpMessageHandler,
 	WATOResponseMessageHandler,
 } from '../modules';
-import { VoiceChannelService } from '../modules/media/voice-channel.service';
 import { WATODatabase } from '../modules/wato/db/wato-database';
 import { WatoHelperService } from '../modules/wato/wato-helper.service';
 import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
+import { ErrorLogger, PredicateHelper } from '../utils';
 
 import { Bot } from './bot';
+import { MessageRunner } from './message-runner';
 
 const container = new Container();
 
@@ -32,13 +33,15 @@ container.bind<Client>(SYMBOLS.Client).toConstantValue(
 	new Client({ disabledEvents: ['TYPING_START'] })
 );
 container.bind<string | undefined>(SYMBOLS.Token).toConstantValue(process.env.DISCORD_BOT_TOKEN);
+
+container.bind<PredicateHelper>(SYMBOLS.PredicateHelper).to(PredicateHelper);
 container.bind<Pool>(SYMBOLS.DbPool).toConstantValue(new Pool());
 container.bind<WATODatabase>(SYMBOLS.WATODatabase).to(WATODatabase);
 container.bind<StopwatchCreator>(SYMBOLS.StopwatchCreator).toDynamicValue(() => () => new Stopwatch());
 container.bind<YtdlCreator>(SYMBOLS.YtdlCreator).toDynamicValue(
 	() => (url: string, opts?: ytdl.downloadOptions | undefined) => ytdl(url, opts)
 );
-container.bind<VoiceChannelService>(SYMBOLS.VoiceChannelService).to(VoiceChannelService);
+
 container.bind<WatoHelperService>(SYMBOLS.WatoHelperService).to(WatoHelperService);
 
 container.bind<PingMessageHandler>(SYMBOLS.PingMessageHandler).to(PingMessageHandler);
@@ -53,6 +56,9 @@ container.bind<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler).to(WATOBetM
 container.bind<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler).to(WATOHelpMessageHandler);
 
 container.bind<MessageHandler[]>(SYMBOLS.MessageHandlers).toConstantValue(_createHandlers());
+
+container.bind<MessageRunner>(SYMBOLS.MessageRunner).to(MessageRunner);
+container.bind<ErrorLogger>(SYMBOLS.ErrorLogger).to(ErrorLogger);
 
 export default container;
 

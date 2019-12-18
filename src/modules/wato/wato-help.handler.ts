@@ -1,9 +1,9 @@
-import { Client, Message, MessageEmbed, RichEmbed, User } from 'discord.js';
+import { Client, RichEmbed, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
 import { SYMBOLS } from '../../types';
-import { combinePredicates, createRegexPredicate, REGEX } from '../../utils';
+import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../utils';
 
 import { WATODatabase } from './db/wato-database';
 import { Challenge } from './models/challenge';
@@ -13,21 +13,25 @@ import { WatoHelperService } from './wato-helper.service';
 @injectable()
 export class WATOHelpMessageHandler implements MessageHandler {
 	constructor(
+		@inject(SYMBOLS.PredicateHelper) private _predicateHelper: PredicateHelper,
 		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
 		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
 	) { }
 
-	messageHandlerPredicate(): MessageHandlerPredicate {
+	createHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
-			createRegexPredicate(REGEX.WATO_HELP)
+			this._predicateHelper.createRegexPredicate(REGEX.WATO_HELP)
 		);
 	}
 
-	async handleMessage(message: Message): Promise<void> {
-		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(message.author);
+	async handleMessage(msg: DiscordMessage): Promise<void> {
+		const author = msg.getAuthorUser();
+		const client = msg.getClient();
 
-		const helpEmbed = await this.getHelpMessage(activeChallenge, message.author, message.client);
-		message.author.send(helpEmbed);
+		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(author);
+
+		const helpEmbed = await this.getHelpMessage(activeChallenge, author, client);
+		author.send(helpEmbed);
 	}
 
 	private async getHelpMessage(activeChallenge: Challenge | null, author: User, client: Client): Promise<RichEmbed> {

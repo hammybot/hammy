@@ -1,39 +1,31 @@
-import { Message } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
 import { SYMBOLS, YtdlCreator } from '../../types';
-import {
-	combinePredicates,
-	createBotNotPlayingMediaPredicate,
-	createChannelTypePredicate,
-	createRegexPredicate,
-	createUserInVoiceChannelPredicate
-} from '../../utils';
+import { combinePredicates, DiscordMessage, PredicateHelper } from '../../utils';
 import { REGEX } from '../../utils/constants';
-
-import { VoiceChannelService } from './voice-channel.service';
 
 @injectable()
 export class PlayYoutubeUrlMessageHandler implements MessageHandler {
 
 	constructor(
-		@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator,
-		@inject(SYMBOLS.VoiceChannelService) private _voiceChannelService: VoiceChannelService
+		@inject(SYMBOLS.PredicateHelper) private _predicateHelper: PredicateHelper,
+		@inject(SYMBOLS.YtdlCreator) private _ytdlCreator: YtdlCreator
 	) { }
 
-	messageHandlerPredicate(): MessageHandlerPredicate {
+	createHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
-			createChannelTypePredicate('text'),
-			createRegexPredicate(REGEX.COMMAND_PLAY_YOUTUBE),
-			createUserInVoiceChannelPredicate(),
-			createBotNotPlayingMediaPredicate()
+			this._predicateHelper.createChannelTypePredicate('text'),
+			this._predicateHelper.createRegexPredicate(REGEX.COMMAND_PLAY_YOUTUBE),
+			this._predicateHelper.createUserInVoiceChannelPredicate(),
+			this._predicateHelper.createBotNotPlayingMediaPredicate()
 		);
 	}
 
-	async handleMessage(message: Message): Promise<void> {
-		const stream = this._ytdlCreator(message.cleanContent, { filter: 'audioonly' });
+	async handleMessage(msg: DiscordMessage): Promise<void> {
+		const messageContent = msg.getCleanContent();
+		const stream = this._ytdlCreator(messageContent, { filter: 'audioonly' });
 
-		this._voiceChannelService.streamToVoiceChannel(message.member.voiceChannel, stream);
+		msg.streamToVoiceChannel(stream);
 	}
 }

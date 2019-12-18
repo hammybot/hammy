@@ -1,41 +1,31 @@
-import { Client, Message } from 'discord.js';
+import { Client } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
-import { MessageHandler } from '../models/message-handler';
 import { SYMBOLS } from '../types';
+import { ErrorLogger } from '../utils';
+
+import { MessageRunner } from './message-runner';
 
 @injectable()
 export class Bot {
 	constructor(
 		@inject(SYMBOLS.Client) private _client: Client,
 		@inject(SYMBOLS.Token) private _token: string | undefined,
-		@inject(SYMBOLS.MessageHandlers) private _messageHandlers: MessageHandler[]
+		@inject(SYMBOLS.MessageRunner) private _messageRunner: MessageRunner,
+		@inject(SYMBOLS.ErrorLogger) private _errorLogger: ErrorLogger
 	) { }
 
-	public async listen(): Promise<void> {
+	public async startBot(): Promise<void> {
 		if (!this._token) {
 			throw new Error('Generate a discord token and store in "DISCORD_BOT_TOKEN" environment file.');
 		}
+		this.setupEventHandlers();
 
-		this._client.on('error', (error) => console.log(error.message));
-		this._client.on('message', (message: Message) => {
-			// Ignore any messages from author or other bots
-			if (message.author.id === message.client.user.id || message.author.bot) { return; }
-			this.runMessageHandlers(this._messageHandlers, message);
-		});
 		await this._client.login(this._token);
 	}
 
-	private async runMessageHandlers(messageHandlers: MessageHandler[], message: Message) {
-		const messageHandlerPromises = messageHandlers.map(async (handler) => {
-			const shouldRunHandler = handler.messageHandlerPredicate();
-			if (!shouldRunHandler(message)) { return; }
-			try {
-				await handler.handleMessage(message);
-			} catch (error) {
-				console.log(`${handler.constructor.name}: ${error}`);
-			}
-		});
-		await Promise.all(messageHandlerPromises);
+	private setupEventHandlers(): void {
+		this._client.on('message', (msg) => { this._messageRunner.run(msg); });
+		this._client.on('error', (err) => { this._errorLogger.log(err.message); });
 	}
 }

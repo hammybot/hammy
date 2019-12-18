@@ -1,9 +1,9 @@
-import { Message, TextChannel } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
 import { SYMBOLS } from '../../types';
-import { combinePredicates, createChannelTypePredicate, createRegexPredicate, REGEX } from '../../utils';
+import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../utils';
 
 import { WATODatabase } from './db/wato-database';
 import { ChallengeStatus } from './models/challenge-status';
@@ -12,37 +12,40 @@ import { WatoHelperService } from './wato-helper.service';
 @injectable()
 export class WATOBetMessageHandler implements MessageHandler {
 	constructor(
+		@inject(SYMBOLS.PredicateHelper) private _predicateHelper: PredicateHelper,
 		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
 		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
 	) { }
 
-	messageHandlerPredicate(): MessageHandlerPredicate {
+	createHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
-			createChannelTypePredicate('dm'),
-			createRegexPredicate(REGEX.VALID_NUMBER)
+			this._predicateHelper.createChannelTypePredicate('dm'),
+			this._predicateHelper.createRegexPredicate(REGEX.VALID_NUMBER)
 		);
 	}
 
-	async handleMessage(message: Message): Promise<void> {
-		const challengeResponse = message.cleanContent.match(REGEX.VALID_NUMBER);
+	async handleMessage(msg: DiscordMessage): Promise<void> {
+		const challengeResponse = msg.getCleanContent().match(REGEX.VALID_NUMBER);
 		if (!challengeResponse || !challengeResponse[0]) { return; }
 
 		const bet = Number(challengeResponse[0]);
+		const author = msg.getAuthorUser();
+		const currentChannel = msg.getChannel();
 
-		let activeChallenge = await this._watoDatabase.getUserActiveChallenge(message.author);
+		let activeChallenge = await this._watoDatabase.getUserActiveChallenge(author);
 		if (!activeChallenge || !activeChallenge.BetLimit || activeChallenge.Status !== ChallengeStatus.PendingBets) {
 			return;
 		}
 
 		if (!Number.isSafeInteger(bet) || bet <= 1 || bet > activeChallenge.BetLimit) {
 			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`
-			<@${message.author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
+			<@${author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
 			`);
-			await message.channel.send(validationEmbed);
+			await currentChannel.send(validationEmbed);
 			return;
 		}
 
-		if (activeChallenge.ChallengerId === message.author.id) {
+		if (activeChallenge.ChallengerId === author.id) {
 			if (activeChallenge.ChallengerBet) { return; }
 			await this._watoDatabase.setChallengerBet(activeChallenge, bet);
 		} else {
@@ -50,9 +53,9 @@ export class WATOBetMessageHandler implements MessageHandler {
 			await this._watoDatabase.setChallengedBet(activeChallenge, bet);
 		}
 
-		await message.channel.send(`Got it!`);
+		await currentChannel.send(`Got it!`);
 
-		activeChallenge = await this._watoDatabase.getUserActiveChallenge(message.author);
+		activeChallenge = await this._watoDatabase.getUserActiveChallenge(author);
 
 		if (!activeChallenge ||
 			!activeChallenge.ChallengerBet ||
@@ -66,10 +69,10 @@ export class WATOBetMessageHandler implements MessageHandler {
 
 		await this._watoDatabase.completeChallenge(activeChallenge, winnerId);
 
-		const originalChannel = message.client.channels.get(activeChallenge.ChannelId) as TextChannel;
+		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId);
 		if (!originalChannel) { return; }
 
-		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, activeChallenge, message.client);
-		originalChannel.send(resultsEmbed);
+		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, activeChallenge, msg.getClient());
+		(originalChannel as TextChannel).send(resultsEmbed);
 	}
 }

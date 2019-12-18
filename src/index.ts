@@ -9,10 +9,10 @@ import container from './core/inversify.config';
 import { SYMBOLS } from './types';
 
 const bot = container.get<Bot>(SYMBOLS.Bot);
-bot.listen().then(() => {
+bot.startBot().then(() => {
 	console.log('hammy ready!');
 }).catch((error) => {
-	console.log(error);
+	console.error(error);
 });
 
 const dbPool = container.get<Pool>(SYMBOLS.DbPool);

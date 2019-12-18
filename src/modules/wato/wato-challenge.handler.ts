@@ -3,13 +3,7 @@ import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
 import { SYMBOLS } from '../../types';
-import {
-	combinePredicates,
-	createChannelTypePredicate,
-	createContainsPredicate,
-	createUniqueMentionsPredicate,
-	MESSAGE_TARGETS
-} from '../../utils';
+import { combinePredicates, DiscordMessage, MESSAGE_TARGETS, PredicateHelper } from '../../utils';
 
 import { WATODatabase } from './db/wato-database';
 import { Challenge } from './models/challenge';
@@ -19,26 +13,28 @@ import { WatoHelperService } from './wato-helper.service';
 @injectable()
 export class WATOChallengeMessageHandler implements MessageHandler {
 	constructor(
+		@inject(SYMBOLS.PredicateHelper) private _predicateHelper: PredicateHelper,
 		@inject(SYMBOLS.WATODatabase) private _watoDatabase: WATODatabase,
 		@inject(SYMBOLS.WatoHelperService) private _watoHelper: WatoHelperService
 	) { }
 
-	messageHandlerPredicate(): MessageHandlerPredicate {
+	createHandlerPredicate(): MessageHandlerPredicate {
 		return combinePredicates(
-			createChannelTypePredicate('text'),
-			createUniqueMentionsPredicate(1, true),
-			createContainsPredicate(MESSAGE_TARGETS.WATO_CHALLENGE, false)
+			this._predicateHelper.createChannelTypePredicate('text'),
+			this._predicateHelper.createUniqueMentionsPredicate(1, true),
+			this._predicateHelper.createContainsPredicate(MESSAGE_TARGETS.WATO_CHALLENGE, false)
 		);
 	}
 
-	async handleMessage(message: Message): Promise<void> {
+	async handleMessage(msg: DiscordMessage): Promise<void> {
 
-		const challenger = message.author;
-		const challenged = message.mentions.users.values().next().value as User;
+		const challenger = msg.getAuthorUser();
+		const challenged = msg.getMentionedUsers().values().next().value as User;
+		const channel = msg.getChannel();
 
 		if (challenger.bot || challenged.bot) {
 			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`Bot's can't play the odds game...`);
-			await message.channel.send(validationEmbed);
+			await channel.send(validationEmbed);
 			return;
 		}
 
@@ -47,22 +43,22 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 			const validationEmbed = this._watoHelper.createWatoValidationEmbed(
 				`<@${challenged.id}> is already in a challenge! They need to finish that one first.`
 			);
-			await message.channel.send(validationEmbed);
+			await channel.send(validationEmbed);
 			return;
 		}
 
 		const challengerActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (challengerActiveChallenge) {
 			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);
-			await message.channel.send(validationEmbed);
+			await channel.send(validationEmbed);
 			return;
 		}
 
 		const challenge: Challenge = {
 			ChallengerId: challenger.id,
 			ChallengedId: challenged.id,
-			ChannelId: message.channel.id,
-			Description: this.removeMentions(message.content),
+			ChannelId: channel.id,
+			Description: this.removeMentions(msg.getContent()),
 			Status: ChallengeStatus.PendingAccept
 		};
 
@@ -71,9 +67,9 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (!activeChallenge) { return; }
 
-		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, message.client);
+		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, msg.getClient());
 
-		const statusMessage = await message.channel.send(statusEmbed) as Message;
+		const statusMessage = await channel.send(statusEmbed) as Message;
 		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
 	}
 

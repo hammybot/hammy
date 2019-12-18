@@ -1,8 +1,8 @@
-import { Message } from 'discord.js';
+import { DiscordMessage } from '../utils';
 
-export type MessageHandlerPredicate = (msg: Message) => boolean;
+export type MessageHandlerPredicate = (msg: DiscordMessage) => boolean;
 
 export interface MessageHandler {
-	messageHandlerPredicate: () => MessageHandlerPredicate;
-	handleMessage: (message: Message) => Promise<void>;
+	createHandlerPredicate: () => MessageHandlerPredicate;
+	handleMessage: (msg: DiscordMessage) => Promise<void>;
 }
