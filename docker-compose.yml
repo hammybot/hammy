@@ -1,5 +1,5 @@
-version: '3'
-services: 
+version: "3"
+services:
   bot:
     build: .
     env_file: .env
@@ -12,6 +12,6 @@ services:
     ports:
       - 5432:5432
 
-volumes: 
+volumes:
   db:
     driver: local
