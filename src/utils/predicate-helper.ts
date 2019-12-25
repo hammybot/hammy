@@ -56,16 +56,16 @@ export class PredicateHelper {
 		};
 	}
 
-	createBotNotPlayingMediaPredicate(): MessageHandlerPredicate {
+	createBotPlayingMediaPredicate(): MessageHandlerPredicate {
 		return (msg: DiscordMessage) => {
 			const dispatcher = msg.getDispatcher();
-			return dispatcher === null;
+			return dispatcher !== null;
 		};
 	}
 
-	createBotPlayingMediaPredicate(): MessageHandlerPredicate {
+	createBotNotPlayingMediaPredicate(): MessageHandlerPredicate {
 		return (msg: DiscordMessage) => {
-			return !this.createBotNotPlayingMediaPredicate()(msg);
+			return !this.createBotPlayingMediaPredicate()(msg);
 		};
 	}
 }
