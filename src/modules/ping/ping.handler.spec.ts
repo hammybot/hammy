@@ -8,7 +8,7 @@ import { BOT_MESSAGES, DiscordMessage, PredicateHelper, REGEX } from '../../util
 
 import { PingMessageHandler } from './ping.handler';
 
-describe('PingMessageHandler', () => {
+describe('Ping Handler', () => {
 	let mockStopWatch: IMock<Stopwatch>;
 	let mockMessage: IMock<DiscordMessage>;
 	let mockPredicateHelper: IMock<PredicateHelper>;

@@ -24,7 +24,7 @@ describe('Youtube Handlers', () => {
 		mockMessage.reset();
 	});
 
-	describe('PlayYoutubeUrlMessageHandler', () => {
+	describe('Play Youtube by URL Handler', () => {
 		let sut: PlayYoutubeUrlMessageHandler;
 
 		beforeEach(() => {

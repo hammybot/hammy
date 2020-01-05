@@ -30,7 +30,7 @@ describe('Playback Handlers', () => {
 		mockDispatcher.reset();
 	});
 
-	describe('PauseMediaMessageHandler', () => {
+	describe('Pause Media Handler', () => {
 		let sut: PauseMediaMessageHandler;
 
 		beforeEach(() => {
@@ -91,7 +91,7 @@ describe('Playback Handlers', () => {
 		});
 	});
 
-	describe('ResumeMediaMessageHandler', () => {
+	describe('Resume Media Handler', () => {
 		let sut: ResumeMediaMessageHandler;
 
 		beforeEach(() => {
@@ -152,7 +152,7 @@ describe('Playback Handlers', () => {
 		});
 	});
 
-	describe('StopMediaMessageHandler', () => {
+	describe('Stop Media Handler', () => {
 		let sut: StopMediaMessageHandler;
 
 		beforeEach(() => {

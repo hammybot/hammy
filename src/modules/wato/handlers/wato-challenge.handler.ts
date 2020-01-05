@@ -1,4 +1,4 @@
-import { Message, MessageMentions, User } from 'discord.js';
+import { Message, MessageMentions, RichEmbed, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
 import { MessageHandler, MessageHandlerPredicate } from '../../../models/message-handler';
@@ -26,32 +26,12 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 	}
 
 	async handleMessage(msg: DiscordMessage): Promise<void> {
-
 		const challenger = msg.getAuthorUser();
 		const challenged = msg.getMentionedUsers().values().next().value as User;
 		const channel = msg.getChannel();
 
-		if (challenger.bot || challenged.bot) {
-			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`Bot's can't play the odds game...`);
-			await channel.send(validationEmbed);
-			return;
-		}
-
-		const challengedActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenged);
-		if (challengedActiveChallenge) {
-			const validationEmbed = this._watoHelper.createWatoValidationEmbed(
-				`<@${challenged.id}> is already in a challenge! They need to finish that one first.`
-			);
-			await channel.send(validationEmbed);
-			return;
-		}
-
-		const challengerActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
-		if (challengerActiveChallenge) {
-			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);
-			await channel.send(validationEmbed);
-			return;
-		}
+		const validationEmbed = await this.runValidation(challenger, challenged);
+		if (validationEmbed) { await channel.send(validationEmbed); return; }
 
 		const challenge: Challenge = {
 			ChallengerId: challenger.id,
@@ -67,9 +47,27 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		if (!activeChallenge) { return; }
 
 		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, msg.getClient());
-
 		const statusMessage = await channel.send(statusEmbed) as Message;
+
 		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
+	}
+
+	private async runValidation(challenger: User, challenged: User): Promise<RichEmbed | undefined> {
+		if (challenger.bot || challenged.bot) {
+			return this._watoHelper.createWatoValidationEmbed(`Bot's can't play the odds game...`);
+		}
+
+		const challengerActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
+		if (challengerActiveChallenge) {
+			return this._watoHelper.createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);
+		}
+
+		const challengedActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenged);
+		if (challengedActiveChallenge) {
+			return this._watoHelper.createWatoValidationEmbed(
+				`<@${challenged.id}> is already in a challenge! They need to finish that one first.`
+			);
+		}
 	}
 
 	private removeMentions(message: string): string {

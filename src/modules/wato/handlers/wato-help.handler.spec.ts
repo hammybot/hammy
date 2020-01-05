@@ -12,7 +12,7 @@ import { WatoHelperService } from '../services/wato-helper.service';
 
 import { WATOHelpMessageHandler } from './wato-help.handler';
 
-describe('WATOHelpMessageHandler', () => {
+describe('WATO Help Handlers', () => {
 	let mockPredicateHelper: IMock<PredicateHelper>;
 	let mockWatoDatabase: IMock<WATODatabase>;
 	let mockWatoHelperService: IMock<WatoHelperService>;
@@ -32,6 +32,7 @@ describe('WATOHelpMessageHandler', () => {
 	afterEach(() => {
 		mockPredicateHelper.reset();
 		mockWatoDatabase.reset();
+		mockWatoHelperService.reset();
 		mockMessage.reset();
 	});
 
