@@ -159,6 +159,90 @@ describe('Predicate Helper', () => {
 		});
 	});
 
+	describe('User in Voice Channel', () => {
+		it('successful match when user is in voice channel', async () => {
+			mockMessage
+				.setup(md => md.getAuthorMember())
+				.returns(() => {
+					return { voiceChannel: true } as any;
+				});
+
+			const predicate = sut.createUserInVoiceChannelPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.true;
+		});
+
+		it('failed match when user is not in a voice channel', async () => {
+			mockMessage
+				.setup(md => md.getAuthorMember())
+				.returns(() => {
+					return { voiceChannel: false } as any;
+				});
+
+			const predicate = sut.createUserInVoiceChannelPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.false;
+		});
+	});
+
+	describe('Bot playing media', () => {
+		it('successful match when bot is currently dispatching', async () => {
+			mockMessage
+				.setup(md => md.getDispatcher())
+				.returns(() => {
+					return { } as any;
+				});
+
+			const predicate = sut.createBotPlayingMediaPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.true;
+		});
+
+		it('failed match when bot is not dispatching', async () => {
+			mockMessage
+				.setup(md => md.getDispatcher())
+				.returns(() => {
+					return null as any;
+				});
+
+			const predicate = sut.createBotPlayingMediaPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.false;
+		});
+	});
+
+	describe('Bot not playing media', () => {
+		it('successful match when bot is not currently dispatching', async () => {
+			mockMessage
+				.setup(md => md.getDispatcher())
+				.returns(() => {
+					return null as any;
+				});
+
+			const predicate = sut.createBotNotPlayingMediaPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.true;
+		});
+
+		it('failed match when bot is not dispatching', async () => {
+			mockMessage
+				.setup(md => md.getDispatcher())
+				.returns(() => {
+					return { } as any;
+				});
+
+			const predicate = sut.createBotNotPlayingMediaPredicate();
+			const isMatch = predicate(mockMessage.object);
+
+			expect(isMatch).to.be.false;
+		});
+	});
+
 	function mockChannelType(type: string) {
 		mockMessage
 			.setup(md => md.getChannel())
