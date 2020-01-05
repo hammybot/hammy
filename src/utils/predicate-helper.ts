@@ -69,12 +69,3 @@ export class PredicateHelper {
 		};
 	}
 }
-
-
-
-
-
-
-
-
-
