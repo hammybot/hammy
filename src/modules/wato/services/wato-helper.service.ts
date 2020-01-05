@@ -124,7 +124,7 @@ export class WatoHelperService {
 			case ChallengeStatus.Declined:
 				return `<@${challengedUser.id}> declined :frowning:`;
 			case ChallengeStatus.PendingAccept:
-				return `Waiting on odds from <@${challengedUser.id}>`;
+				return `Waiting on response from <@${challengedUser.id}>`;
 			case ChallengeStatus.PendingBets:
 				return 'Game on!';
 			default:
