@@ -19,7 +19,7 @@ import {
 	WATOResponseMessageHandler,
 } from '../modules';
 import { WATODatabase } from '../modules/wato/db/wato-database';
-import { WatoHelperService } from '../modules/wato/wato-helper.service';
+import { WatoHelperService } from '../modules/wato/services/wato-helper.service';
 import { StopwatchCreator, SYMBOLS, YtdlCreator } from '../types';
 import { ErrorLogger, PredicateHelper } from '../utils';
 

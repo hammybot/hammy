@@ -1,13 +1,12 @@
 import { TextChannel } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
-import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
-import { SYMBOLS } from '../../types';
-import { combinePredicates, DiscordMessage, MESSAGE_TARGETS, PredicateHelper } from '../../utils';
-
-import { WATODatabase } from './db/wato-database';
-import { ChallengeStatus } from './models/challenge-status';
-import { WatoHelperService } from './wato-helper.service';
+import { MessageHandler, MessageHandlerPredicate } from '../../../models/message-handler';
+import { SYMBOLS } from '../../../types';
+import { combinePredicates, DiscordMessage, MESSAGE_TARGETS, PredicateHelper } from '../../../utils';
+import { WATODatabase } from '../db/wato-database';
+import { ChallengeStatus } from '../models/challenge-status';
+import { WatoHelperService } from '../services/wato-helper.service';
 
 @injectable()
 export class WATODeclineMessageHandler implements MessageHandler {

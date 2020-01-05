@@ -4,13 +4,13 @@ import 'reflect-metadata';
 import * as TypeMoq from 'typemoq';
 import { IMock, Times } from 'typemoq';
 
-import { DiscordMessage, PredicateHelper, REGEX } from '../../utils';
+import { DiscordMessage, PredicateHelper, REGEX } from '../../../utils';
+import { WATODatabase } from '../db/wato-database';
+import { Challenge } from '../models/challenge';
+import { ChallengeStatus } from '../models/challenge-status';
+import { WatoHelperService } from '../services/wato-helper.service';
 
-import { WATODatabase } from './db/wato-database';
-import { Challenge } from './models/challenge';
-import { ChallengeStatus } from './models/challenge-status';
 import { WATOHelpMessageHandler } from './wato-help.handler';
-import { WatoHelperService } from './wato-helper.service';
 
 describe('WATOHelpMessageHandler', () => {
 	let mockPredicateHelper: IMock<PredicateHelper>;

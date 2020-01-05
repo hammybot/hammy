@@ -1,14 +1,13 @@
 import { Client, RichEmbed, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 
-import { MessageHandler, MessageHandlerPredicate } from '../../models/message-handler';
-import { SYMBOLS } from '../../types';
-import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../utils';
-
-import { WATODatabase } from './db/wato-database';
-import { Challenge } from './models/challenge';
-import { ChallengeStatus } from './models/challenge-status';
-import { WatoHelperService } from './wato-helper.service';
+import { MessageHandler, MessageHandlerPredicate } from '../../../models/message-handler';
+import { SYMBOLS } from '../../../types';
+import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../../utils';
+import { WATODatabase } from '../db/wato-database';
+import { Challenge } from '../models/challenge';
+import { ChallengeStatus } from '../models/challenge-status';
+import { WatoHelperService } from '../services/wato-helper.service';
 
 @injectable()
 export class WATOHelpMessageHandler implements MessageHandler {

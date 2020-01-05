@@ -1,8 +1,8 @@
 import { Client, RichEmbed, User } from 'discord.js';
 import { injectable } from 'inversify';
 
-import { Challenge } from './models/challenge';
-import { ChallengeStatus } from './models/challenge-status';
+import { Challenge } from '../models/challenge';
+import { ChallengeStatus } from '../models/challenge-status';
 
 const QUESTION_MARK_ICON = 'https://i.imgur.com/DbxSPZy.png';
 
