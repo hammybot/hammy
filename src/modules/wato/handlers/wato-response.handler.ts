@@ -56,14 +56,15 @@ export class WATOResponseMessageHandler implements MessageHandler {
 		await challenger.send(this._watoHelper.createWatoDmEmbed(challenged.user.username, betLimit, activeChallenge));
 		await challenged.send(this._watoHelper.createWatoDmEmbed(challenger.user.username, betLimit, activeChallenge));
 
-		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId);
+		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
+			activeChallenge.ChallengerId, activeChallenge.ChallengedId, ChallengeStatus.PendingBets,
+			activeChallenge.Description, msg.getClient()
+		);
+
+		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const statusMessage = await (originalChannel as TextChannel).fetchMessage(activeChallenge.StatusMessageId as string);
-
-		// workaround for now
-		activeChallenge.Status = ChallengeStatus.PendingBets;
-		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, msg.getClient());
+		const statusMessage = await originalChannel.fetchMessage(activeChallenge.StatusMessageId as string);
 		statusMessage.edit(newStatusEmbed);
 	}
 }

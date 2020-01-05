@@ -8,15 +8,17 @@ const QUESTION_MARK_ICON = 'https://i.imgur.com/DbxSPZy.png';
 
 @injectable()
 export class WatoHelperService {
-	async createWatoStatusEmbed(challenge: Challenge, client: Client): Promise<RichEmbed> {
-		const challengerUser = await client.fetchUser(challenge.ChallengerId);
-		const challengedUser = await client.fetchUser(challenge.ChallengedId);
+	async createWatoStatusEmbed(
+		challengerId: string, challengedId: string, status: ChallengeStatus, description: string, client: Client
+	): Promise<RichEmbed> {
+		const challengerUser = await client.fetchUser(challengerId);
+		const challengedUser = await client.fetchUser(challengedId);
 
 		return new RichEmbed()
-			.setColor(this.getChallengeStatusColor(challenge.Status))
+			.setColor(this.getChallengeStatusColor(status))
 			.setTitle(`__${challengerUser.username}__ has challenged __${challengedUser.username}__ to a game of odds!`)
-			.setDescription(`\`\`\`${challenge.Description}\`\`\``)
-			.addField('**Status**', this.getChallengeStatusText(challenge.Status, challengedUser))
+			.setDescription(`\`\`\`${description}\`\`\``)
+			.addField('**Status**', this.getChallengeStatusText(status, challengedUser))
 			.setFooter(this.getHelpFooterText(), QUESTION_MARK_ICON);
 	}
 

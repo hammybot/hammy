@@ -34,14 +34,15 @@ export class WATODeclineMessageHandler implements MessageHandler {
 
 		await this._watoDatabase.declineChallenge(activeChallenge);
 
-		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId);
+		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const statusMessage = await (originalChannel as TextChannel).fetchMessage(activeChallenge.StatusMessageId as string);
+		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
+			activeChallenge.ChallengerId, activeChallenge.ChallengedId, ChallengeStatus.Declined,
+			activeChallenge.Description, msg.getClient()
+		);
 
-		// workaround for now
-		activeChallenge.Status = ChallengeStatus.Declined;
-		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, msg.getClient());
+		const statusMessage = await originalChannel.fetchMessage(activeChallenge.StatusMessageId as string);
 		statusMessage.edit(newStatusEmbed);
 	}
 }

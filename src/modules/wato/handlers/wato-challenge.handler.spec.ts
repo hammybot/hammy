@@ -139,7 +139,10 @@ describe('WATO Challenges Handler', () => {
 			});
 			mockActiveChallenge();
 			mockWatoHelperService.setup(
-				helper => helper.createWatoStatusEmbed(TypeMoq.It.isAny(), TypeMoq.It.isAny())
+				helper => helper.createWatoStatusEmbed(
+					TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
+					TypeMoq.It.isAny(), TypeMoq.It.isAny()
+				)
 			).returns(() => fakeStatusMessage as any);
 
 			await sut.handleMessage(createMockWatoMessage(challenger, challenged));

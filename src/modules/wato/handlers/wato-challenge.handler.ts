@@ -46,9 +46,12 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (!activeChallenge) { return; }
 
-		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(activeChallenge, msg.getClient());
-		const statusMessage = await channel.send(statusEmbed) as Message;
+		const statusEmbed = await this._watoHelper.createWatoStatusEmbed(
+			activeChallenge.ChallengerId, activeChallenge.ChallengedId, activeChallenge.Status,
+			activeChallenge.Description, msg.getClient()
+		);
 
+		const statusMessage = await channel.send(statusEmbed) as Message;
 		await this._watoDatabase.setStatusMessageId(activeChallenge, statusMessage.id);
 	}
 
