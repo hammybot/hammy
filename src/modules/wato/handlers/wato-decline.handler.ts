@@ -5,6 +5,7 @@ import { MessageHandler, MessageHandlerPredicate } from '../../../models/message
 import { SYMBOLS } from '../../../types';
 import { combinePredicates, DiscordMessage, MESSAGE_TARGETS, PredicateHelper } from '../../../utils';
 import { WATODatabase } from '../db/wato-database';
+import { Challenge } from '../models/challenge';
 import { ChallengeStatus } from '../models/challenge-status';
 import { WatoHelperService } from '../services/wato-helper.service';
 
@@ -33,16 +34,19 @@ export class WATODeclineMessageHandler implements MessageHandler {
 			activeChallenge.ChallengedId !== author.id) { return; }
 
 		await this._watoDatabase.declineChallenge(activeChallenge);
+		await this.updateWatoStatusMessage(msg, activeChallenge);
+	}
 
-		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId) as TextChannel;
+	private async updateWatoStatusMessage(msg: DiscordMessage, challenge: Challenge) {
+		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
 		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
-			activeChallenge.ChallengerId, activeChallenge.ChallengedId, ChallengeStatus.Declined,
-			activeChallenge.Description, msg.getClient()
+			challenge.ChallengerId, challenge.ChallengedId, ChallengeStatus.Declined,
+			challenge.Description, msg.getClient()
 		);
 
-		const statusMessage = await originalChannel.fetchMessage(activeChallenge.StatusMessageId as string);
+		const statusMessage = await originalChannel.fetchMessage(challenge.StatusMessageId as string);
 		statusMessage.edit(newStatusEmbed);
 	}
 }

@@ -5,6 +5,7 @@ import { MessageHandler, MessageHandlerPredicate } from '../../../models/message
 import { SYMBOLS } from '../../../types';
 import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../../utils';
 import { WATODatabase } from '../db/wato-database';
+import { Challenge } from '../models/challenge';
 import { ChallengeStatus } from '../models/challenge-status';
 import { WatoHelperService } from '../services/wato-helper.service';
 
@@ -48,23 +49,30 @@ export class WATOResponseMessageHandler implements MessageHandler {
 
 		await this._watoDatabase.setBetLimit(activeChallenge, betLimit);
 
-		const challenger = msg.getGuildMember(activeChallenge.ChallengerId);
-		const challenged = msg.getGuildMember(activeChallenge.ChallengedId);
+		await this.sendWatoDmToPlayers(msg, activeChallenge, betLimit);
+		await this.updateWatoStatusMessage(msg, activeChallenge);
+	}
+
+	private async sendWatoDmToPlayers(msg: DiscordMessage, challenge: Challenge, betLimit: number) {
+		const challenger = msg.getGuildMember(challenge.ChallengerId);
+		const challenged = msg.getGuildMember(challenge.ChallengedId);
 
 		if (!challenger || !challenged) { return; }
 
-		await challenger.send(this._watoHelper.createWatoDmEmbed(challenged.user.username, betLimit, activeChallenge));
-		await challenged.send(this._watoHelper.createWatoDmEmbed(challenger.user.username, betLimit, activeChallenge));
+		await challenger.send(this._watoHelper.createWatoDmEmbed(challenged.user.username, betLimit, challenge));
+		await challenged.send(this._watoHelper.createWatoDmEmbed(challenger.user.username, betLimit, challenge));
+	}
 
+	private async updateWatoStatusMessage(msg: DiscordMessage, challenge: Challenge) {
 		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
-			activeChallenge.ChallengerId, activeChallenge.ChallengedId, ChallengeStatus.PendingBets,
-			activeChallenge.Description, msg.getClient()
+			challenge.ChallengerId, challenge.ChallengedId, ChallengeStatus.PendingBets,
+			challenge.Description, msg.getClient()
 		);
 
-		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId) as TextChannel;
+		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const statusMessage = await originalChannel.fetchMessage(activeChallenge.StatusMessageId as string);
+		const statusMessage = await originalChannel.fetchMessage(challenge.StatusMessageId as string);
 		statusMessage.edit(newStatusEmbed);
 	}
 }
