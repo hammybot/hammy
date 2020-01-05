@@ -5,6 +5,7 @@ import { MessageHandler, MessageHandlerPredicate } from '../../../models/message
 import { SYMBOLS } from '../../../types';
 import { combinePredicates, DiscordMessage, PredicateHelper, REGEX } from '../../../utils';
 import { WATODatabase } from '../db/wato-database';
+import { Challenge } from '../models/challenge';
 import { ChallengeStatus } from '../models/challenge-status';
 import { WatoHelperService } from '../services/wato-helper.service';
 
@@ -44,14 +45,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 			return;
 		}
 
-		if (activeChallenge.ChallengerId === author.id) {
-			if (activeChallenge.ChallengerBet) { return; }
-			await this._watoDatabase.setChallengerBet(activeChallenge, bet);
-		} else {
-			if (activeChallenge.ChallengedBet) { return; }
-			await this._watoDatabase.setChallengedBet(activeChallenge, bet);
-		}
-
+		await this.setBet(activeChallenge, activeChallenge.ChallengerId === author.id, bet);
 		await currentChannel.send(`Got it!`);
 
 		activeChallenge = await this._watoDatabase.getUserActiveChallenge(author);
@@ -63,15 +57,29 @@ export class WATOBetMessageHandler implements MessageHandler {
 			return;
 		}
 
-		const winnerId = activeChallenge.ChallengerBet === activeChallenge.ChallengedBet
-			? activeChallenge.ChallengerId : activeChallenge.ChallengedId;
+		await this.completeGame(msg, activeChallenge);
+	}
 
-		await this._watoDatabase.completeChallenge(activeChallenge, winnerId);
+	private async setBet(challenge: Challenge, isAuthorChallenger: boolean, bet: number) {
+		if (isAuthorChallenger) {
+			if (challenge.ChallengerBet) { return; }
+			await this._watoDatabase.setChallengerBet(challenge, bet);
+		} else {
+			if (challenge.ChallengedBet) { return; }
+			await this._watoDatabase.setChallengedBet(challenge, bet);
+		}
+	}
 
-		const originalChannel = msg.getClientChannel(activeChallenge.ChannelId);
+	private async completeGame(msg: DiscordMessage, challenge: Challenge) {
+		const winnerId = challenge.ChallengerBet === challenge.ChallengedBet
+			? challenge.ChallengerId : challenge.ChallengedId;
+
+		await this._watoDatabase.completeChallenge(challenge, winnerId);
+
+		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, activeChallenge, msg.getClient());
-		(originalChannel as TextChannel).send(resultsEmbed);
+		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, challenge, msg.getClient());
+		originalChannel.send(resultsEmbed);
 	}
 }
