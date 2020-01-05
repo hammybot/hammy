@@ -26,6 +26,6 @@ export class PlayYoutubeUrlMessageHandler implements MessageHandler {
 		const messageContent = msg.getCleanContent();
 		const stream = this._ytdlCreator(messageContent, { filter: 'audioonly' });
 
-		msg.streamToVoiceChannel(stream);
+		await msg.streamToVoiceChannel(stream);
 	}
 }
