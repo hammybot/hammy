@@ -30,16 +30,16 @@ export class WatoHelperService {
 			winnerWasChallenger ? challenge.ChallengedId : challenge.ChallengerId
 		);
 
-		const winningBet = winnerWasChallenger ? challenge.ChallengerBet : challenge.ChallengedBet;
-		const losingBet = winnerWasChallenger ? challenge.ChallengedBet : challenge.ChallengerBet;
+		const winningBet = Number(winnerWasChallenger ? challenge.ChallengerBet : challenge.ChallengedBet);
+		const losingBet = Number(winnerWasChallenger ? challenge.ChallengedBet : challenge.ChallengerBet);
 
 		return new RichEmbed()
 			.setColor('#0099ff')
 			.setTitle(`__${winningUser.username}__ has defeated __${losingUser.username}__ in a game of odds!`)
 			.setDescription(`\`\`\`${challenge.Description}\`\`\``)
 			.setThumbnail(`${winningUser.displayAvatarURL}`)
-			.addField(`${winningUser.username}'s bet`, `${winningBet}`, true)
-			.addField(`${losingUser.username}'s bet`, `${losingBet}`, true);
+			.addField(`${winningUser.username}'s bet`, `${winningBet.toLocaleString()}`, true)
+			.addField(`${losingUser.username}'s bet`, `${losingBet.toLocaleString()}`, true);
 	}
 
 	createWatoDmEmbed(username: string, betLimit: number, challenge: Challenge): RichEmbed {
@@ -47,7 +47,7 @@ export class WatoHelperService {
 			.setColor('#ffffff')
 			.setTitle(`__${username}__ challenged you!`)
 			.setDescription(`\`\`\`${challenge.Description}\`\`\``)
-			.addField(`**Status**`, `Respond here with a number between 1 and ${betLimit}`, true)
+			.addField(`**Status**`, `Respond here with a number between 1 and ${betLimit.toLocaleString()}`, true)
 			.setFooter(this.getHelpFooterText(), QUESTION_MARK_ICON);
 	}
 

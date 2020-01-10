@@ -39,7 +39,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 
 		if (!Number.isSafeInteger(bet) || bet <= 1 || bet > activeChallenge.BetLimit) {
 			const validationEmbed = this._watoHelper.createWatoValidationEmbed(`
-			<@${author.id}> Your bet needs to be between 1 and ${activeChallenge.BetLimit}
+			<@${author.id}> Your bet needs to be between 1 and ${Number(activeChallenge.BetLimit).toLocaleString()}
 			`);
 			await currentChannel.send(validationEmbed);
 			return;
