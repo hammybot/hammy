@@ -48,10 +48,11 @@ export class WATOHelpMessageHandler implements MessageHandler {
 				}
 				return this._watoHelper.createWaitingOnAuthorAcceptHelpMessage(opponent);
 			case ChallengeStatus.PendingBets:
-				if (!activeChallenge.ChallengedBet && !activeChallenge.ChallengerBet) {
-					return this._watoHelper.createWaitingOnAuthorBetHelpMessage();
-				}
-				if (authorIsChallenger && !activeChallenge.ChallengerBet) {
+				if (
+					(!activeChallenge.ChallengedBet && !activeChallenge.ChallengerBet) ||
+					(authorIsChallenger && !activeChallenge.ChallengerBet) ||
+					(!authorIsChallenger && !activeChallenge.ChallengedBet)
+				) {
 					return this._watoHelper.createWaitingOnAuthorBetHelpMessage();
 				}
 				return this._watoHelper.createWaitingOnOpponentBetHelpMessage(opponent);

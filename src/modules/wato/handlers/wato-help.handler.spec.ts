@@ -91,7 +91,7 @@ describe('WATO Help Handlers', () => {
 			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorAcceptHelpMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 
-		it('active challenge, waiting on opponent bet, gets special context', async () => {
+		it('active challenge, waiting on opponent bet (challenger), gets special context', async () => {
 			const fakeChallenge = {
 				ChallengerId: '1',
 				ChallengerBet: 1,
@@ -108,7 +108,24 @@ describe('WATO Help Handlers', () => {
 			mockWatoHelperService.verify(mock => mock.createWaitingOnOpponentBetHelpMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 
-		it('active challenge, waiting on your bet, gets special context', async () => {
+		it('active challenge, waiting on opponent bet (challenged), gets special context', async () => {
+			const fakeChallenge = {
+				ChallengerId: '1',
+				ChallengerBet: undefined,
+				ChallengedId: '2',
+				ChallengedBet: 2,
+				Status: ChallengeStatus.PendingBets
+			} as Challenge;
+			mockWatoDatabase.setup(mock => mock.getUserActiveChallenge(TypeMoq.It.isAny())).returns(
+				() => new Promise<Challenge | null>((resolve) => {
+					resolve(fakeChallenge);
+				}));
+			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengedId));
+
+			mockWatoHelperService.verify(mock => mock.createWaitingOnOpponentBetHelpMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
+		});
+
+		it('active challenge, waiting on your bet (challenger), gets special context', async () => {
 			const fakeChallenge = {
 				ChallengerId: '1',
 				ChallengerBet: undefined,
@@ -121,6 +138,23 @@ describe('WATO Help Handlers', () => {
 					resolve(fakeChallenge);
 				}));
 			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengerId));
+
+			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorBetHelpMessage(), TypeMoq.Times.once());
+		});
+
+		it('active challenge, waiting on your bet (challenged), gets special context', async () => {
+			const fakeChallenge = {
+				ChallengerId: '1',
+				ChallengerBet: 1,
+				ChallengedId: '2',
+				ChallengedBet: undefined,
+				Status: ChallengeStatus.PendingBets
+			} as Challenge;
+			mockWatoDatabase.setup(mock => mock.getUserActiveChallenge(TypeMoq.It.isAny())).returns(
+				() => new Promise<Challenge | null>((resolve) => {
+					resolve(fakeChallenge);
+				}));
+			await sut.handleMessage(createMockMessage(fakeChallenge.ChallengedId));
 
 			mockWatoHelperService.verify(mock => mock.createWaitingOnAuthorBetHelpMessage(), TypeMoq.Times.once());
 		});
