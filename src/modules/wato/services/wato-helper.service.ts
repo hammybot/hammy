@@ -65,11 +65,15 @@ export class WatoHelperService {
 			.setTitle('How to Play WATO (What are the Odds?)')
 			.addField(
 				'**1. Challenge someone by mentioning them like below:**',
-				`\`@${authorUsername} what are the odds that you challenge me?\``
+				`\`@${botUsername} what are the odds that you challenge me?\``
 			)
 			.addField(
 				'**2a. The challenged player will respond mentioning you and with an odd:**',
-				`\`@${botUsername} 1326\``
+				`\`@${authorUsername} 10,000\``
+			)
+			.addField(
+				'**2b. The challenged player can also decline the challenge like below:**',
+				`\`@${authorUsername} decline\``
 			)
 			.addField(
 				'**3. If an odd was given, I\'ll DM both of you asking for a bet! Just respond with a number.**',
