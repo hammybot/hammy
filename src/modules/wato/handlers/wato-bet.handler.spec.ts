@@ -72,7 +72,7 @@ describe('WATO Bet Handler', () => {
 
 		it('if not in an active challenge, no bet is set', async () => {
 			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => undefined as any);
-			await sut.handleMessage(createMockWatoMessage(true, 100));
+			await sut.handleMessage(createMockWatoMessage(true, '100'));
 
 			mockWatoDatabase.verify(
 				mock => mock.setChallengerBet(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
@@ -89,7 +89,7 @@ describe('WATO Bet Handler', () => {
 			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
 				return { BetLimit: undefined } as any;
 			});
-			await sut.handleMessage(createMockWatoMessage(false, 100));
+			await sut.handleMessage(createMockWatoMessage(false, '100'));
 
 			mockWatoDatabase.verify(
 				mock => mock.setChallengerBet(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
@@ -106,7 +106,7 @@ describe('WATO Bet Handler', () => {
 			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
 				return { BetLimit: 10, Status: ChallengeStatus.Declined } as any;
 			});
-			await sut.handleMessage(createMockWatoMessage(false, 100));
+			await sut.handleMessage(createMockWatoMessage(false, '100'));
 
 			mockWatoDatabase.verify(
 				mock => mock.setChallengerBet(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
@@ -121,28 +121,28 @@ describe('WATO Bet Handler', () => {
 
 		it('validation fails when bet is set to 1', async () => {
 			mockActiveChallenge();
-			await sut.handleMessage(createMockWatoMessage(false, 1));
+			await sut.handleMessage(createMockWatoMessage(false, '1'));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('validation fails when bet is less than 1', async () => {
 			mockActiveChallenge();
-			await sut.handleMessage(createMockWatoMessage(true, 0));
+			await sut.handleMessage(createMockWatoMessage(true, '0'));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('validation fails when bet is greater than bet limit', async () => {
 			mockActiveChallenge();
-			await sut.handleMessage(createMockWatoMessage(false, 101));
+			await sut.handleMessage(createMockWatoMessage(false, '10002'));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('if author is challenger, set\'s the challenger bet and responds with confirmation', async () => {
 			mockActiveChallenge();
-			await sut.handleMessage(createMockWatoMessage(true, 99));
+			await sut.handleMessage(createMockWatoMessage(true, '99'));
 
 			mockWatoDatabase.verify(
 				mock => mock.setChallengerBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(99)),
@@ -156,7 +156,7 @@ describe('WATO Bet Handler', () => {
 
 		it('if author is challenged user, set\'s the challenged bet and responds with confirmation', async () => {
 			mockActiveChallenge();
-			await sut.handleMessage(createMockWatoMessage(false, 99));
+			await sut.handleMessage(createMockWatoMessage(false, '99'));
 
 			mockWatoDatabase.verify(
 				mock => mock.setChallengedBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(99)),
@@ -168,9 +168,23 @@ describe('WATO Bet Handler', () => {
 			);
 		});
 
+		it('bet is set correctly if comma is used', async () => {
+			mockActiveChallenge();
+			await sut.handleMessage(createMockWatoMessage(true, '10,000'));
+
+			mockWatoDatabase.verify(
+				mock => mock.setChallengerBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(10000)),
+				Times.once()
+			);
+			mockChannel.verify(
+				mock => mock.send(TypeMoq.It.isAny()),
+				Times.once()
+			);
+		});
+
 		it('if challenger\'s bet matches the challenged user\'s bet, complete the game with challenger as the winner', async () => {
 			mockActiveChallenge(80, 80);
-			await sut.handleMessage(createMockWatoMessage(false, 80));
+			await sut.handleMessage(createMockWatoMessage(false, '80'));
 
 			mockWatoDatabase.verify(
 				mock => mock.completeChallenge(TypeMoq.It.isAny(), TypeMoq.It.isValue('1')),
@@ -180,7 +194,7 @@ describe('WATO Bet Handler', () => {
 
 		it('if challenger\'s bet doesn\'t match the challenged user\'s bet, complete the game with challenged as the winner', async () => {
 			mockActiveChallenge(22, 80);
-			await sut.handleMessage(createMockWatoMessage(true, 22));
+			await sut.handleMessage(createMockWatoMessage(true, '22'));
 
 			mockWatoDatabase.verify(
 				mock => mock.completeChallenge(TypeMoq.It.isAny(), TypeMoq.It.isValue('2')),
@@ -195,7 +209,7 @@ describe('WATO Bet Handler', () => {
 			).returns(() => fakeResultMessage as any);
 
 			mockActiveChallenge(80, 80);
-			await sut.handleMessage(createMockWatoMessage(false, 80));
+			await sut.handleMessage(createMockWatoMessage(false, '80'));
 
 			mockChannel.verify(
 				mock => mock.send(TypeMoq.It.isValue(fakeResultMessage)),
@@ -203,7 +217,7 @@ describe('WATO Bet Handler', () => {
 			);
 		});
 
-		function createMockWatoMessage(isChallenger: boolean, bet: number) {
+		function createMockWatoMessage(isChallenger: boolean, bet: string) {
 			mockMessage.setup(msg => msg.getAuthorUser()).returns(() => {
 				return isChallenger ? challenger : challenged as any;
 			});
@@ -226,7 +240,7 @@ describe('WATO Bet Handler', () => {
 		function mockActiveChallenge(challengerBet?: number, challengedUserBet?: number) {
 			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
 				return {
-					BetLimit: 100,
+					BetLimit: 10001,
 					Status: ChallengeStatus.PendingBets,
 					ChallengerId: challenger.id,
 					ChallengedId: challenged.id,

@@ -8,7 +8,7 @@ export const REGEX = {
 	COMMAND_RESUME: /^!resume$/,
 	COMMAND_STOP: /^!stop$/,
 	COMMAND_PLAY_YOUTUBE: /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/,
-	VALID_NUMBER: /(?<=\s|^)-?\d+/,
+	VALID_NUMBER: /(?<=\s|^)-?\d+(,\d+)*/,
 	WATO_HELP: /^!wato$/
 };
 

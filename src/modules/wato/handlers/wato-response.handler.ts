@@ -32,7 +32,7 @@ export class WATOResponseMessageHandler implements MessageHandler {
 		const challengeResponse = msg.getCleanContent().match(REGEX.VALID_NUMBER);
 		if (!challengeResponse || !challengeResponse[0]) { return; }
 
-		const betLimit = Number(challengeResponse[0]);
+		const betLimit = Number(challengeResponse[0].replace(/,/g, ''));
 
 		const activeChallenge = await this._watoDatabase.getUserActiveChallenge(author);
 		if (!activeChallenge ||

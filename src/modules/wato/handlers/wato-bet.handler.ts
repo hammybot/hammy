@@ -28,7 +28,7 @@ export class WATOBetMessageHandler implements MessageHandler {
 		const challengeResponse = msg.getCleanContent().match(REGEX.VALID_NUMBER);
 		if (!challengeResponse || !challengeResponse[0]) { return; }
 
-		const bet = Number(challengeResponse[0]);
+		const bet = Number(challengeResponse[0].replace(/,/g, ''));
 		const author = msg.getAuthorUser();
 		const currentChannel = msg.getChannel();
 

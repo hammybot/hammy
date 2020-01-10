@@ -102,25 +102,25 @@ describe('WATO Response Handler', () => {
 		});
 
 		it('validation fails when bet limit is set to 1', async () => {
-			await sut.handleMessage(createMockWatoMessage(1));
+			await sut.handleMessage(createMockWatoMessage('1'));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('validation fails when bet limit is less than 1', async () => {
-			await sut.handleMessage(createMockWatoMessage(0));
+			await sut.handleMessage(createMockWatoMessage('0'));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('validation fails when bet limit is more than MAX_SAFE_INTEGER', async () => {
-			await sut.handleMessage(createMockWatoMessage(Number.MAX_SAFE_INTEGER + 1));
+			await sut.handleMessage(createMockWatoMessage((Number.MAX_SAFE_INTEGER + 1).toString()));
 
 			assertThatValidationHasFailed();
 		});
 
 		it('bet limit is saved to database', async () => {
-			await sut.handleMessage(createMockWatoMessage(200));
+			await sut.handleMessage(createMockWatoMessage('200'));
 
 			mockWatoDatabase.verify(
 				db => db.setBetLimit(TypeMoq.It.isAny(), TypeMoq.It.isValue(200)),
@@ -128,8 +128,17 @@ describe('WATO Response Handler', () => {
 			);
 		});
 
+		it('bet limit is saved to database when comma is used', async () => {
+			await sut.handleMessage(createMockWatoMessage('10,000'));
+
+			mockWatoDatabase.verify(
+				db => db.setBetLimit(TypeMoq.It.isAny(), TypeMoq.It.isValue(10000)),
+				Times.once()
+			);
+		});
+
 		it('DM is sent to challenger and challenged user', async () => {
-			await sut.handleMessage(createMockWatoMessage(200));
+			await sut.handleMessage(createMockWatoMessage('200'));
 
 			mockWatoHelperService.verify(
 				mock => mock.createWatoDmEmbed(TypeMoq.It.isValue(challenged.user.username), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
@@ -150,7 +159,7 @@ describe('WATO Response Handler', () => {
 				mock => mock.createWatoStatusEmbed(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())
 			).returns(() => fakeStatusUpdate);
 
-			await sut.handleMessage(createMockWatoMessage(200));
+			await sut.handleMessage(createMockWatoMessage('200'));
 
 			mockStatusMessage.verify(
 				mock => mock.edit(TypeMoq.It.isValue(fakeStatusUpdate)),
@@ -158,7 +167,7 @@ describe('WATO Response Handler', () => {
 			);
 		});
 
-		function createMockWatoMessage(betLimit: number) {
+		function createMockWatoMessage(betLimit: string) {
 			mockMessage.setup(msg => msg.getAuthorUser()).returns(() => {
 				return challenged as any;
 			});
