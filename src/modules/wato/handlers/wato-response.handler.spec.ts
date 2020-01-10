@@ -107,13 +107,13 @@ describe('WATO Response Handler', () => {
 			assertThatValidationHasFailed();
 		});
 
-		it('validation fails when bet limit is less then 1', async () => {
+		it('validation fails when bet limit is less than 1', async () => {
 			await sut.handleMessage(createMockWatoMessage(0));
 
 			assertThatValidationHasFailed();
 		});
 
-		it('validation fails when bet limit is more then MAX_SAFE_INTEGER', async () => {
+		it('validation fails when bet limit is more than MAX_SAFE_INTEGER', async () => {
 			await sut.handleMessage(createMockWatoMessage(Number.MAX_SAFE_INTEGER + 1));
 
 			assertThatValidationHasFailed();
