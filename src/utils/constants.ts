@@ -4,6 +4,7 @@ export const BOT_MESSAGES = {
 
 export const REGEX = {
 	COMMAND_PING: /^!ping$/,
+	COMMAND_VERSION: /^!version$/,
 	COMMAND_PAUSE: /^!pause$/,
 	COMMAND_RESUME: /^!resume$/,
 	COMMAND_STOP: /^!stop$/,

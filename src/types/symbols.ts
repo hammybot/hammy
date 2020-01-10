@@ -11,6 +11,7 @@ export const SYMBOLS = {
 	DbPool: Symbol('DbPool'),
 	WATODatabase: Symbol('WATODatabase'),
 	PingMessageHandler: Symbol('PingMessageHandler'),
+	VersionMessageHandler: Symbol('VersionMessageHandler'),
 	PlayYoutubeUrlMessageHandler: Symbol('PlayYoutubeUrlMessageHandler'),
 	PauseMediaMessageHandler: Symbol('PauseMediaMessageHandler'),
 	ResumeMediaMessageHandler: Symbol('ResumeMediaMessageHandler'),

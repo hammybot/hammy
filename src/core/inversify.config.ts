@@ -12,6 +12,7 @@ import {
 	PlayYoutubeUrlMessageHandler,
 	ResumeMediaMessageHandler,
 	StopMediaMessageHandler,
+	VersionMessageHandler,
 	WATOBetMessageHandler,
 	WATOChallengeMessageHandler,
 	WATODeclineMessageHandler,
@@ -45,6 +46,7 @@ container.bind<YtdlCreator>(SYMBOLS.YtdlCreator).toDynamicValue(
 container.bind<WatoHelperService>(SYMBOLS.WatoHelperService).to(WatoHelperService);
 
 container.bind<PingMessageHandler>(SYMBOLS.PingMessageHandler).to(PingMessageHandler);
+container.bind<VersionMessageHandler>(SYMBOLS.VersionMessageHandler).to(VersionMessageHandler);
 container.bind<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler).to(PlayYoutubeUrlMessageHandler);
 container.bind<PauseMediaMessageHandler>(SYMBOLS.PauseMediaMessageHandler).to(PauseMediaMessageHandler);
 container.bind<ResumeMediaMessageHandler>(SYMBOLS.ResumeMediaMessageHandler).to(ResumeMediaMessageHandler);
@@ -65,6 +67,7 @@ export default container;
 function _createHandlers(): MessageHandler[] {
 	return [
 		container.get<PingMessageHandler>(SYMBOLS.PingMessageHandler),
+		container.get<VersionMessageHandler>(SYMBOLS.VersionMessageHandler),
 		container.get<PlayYoutubeUrlMessageHandler>(SYMBOLS.PlayYoutubeUrlMessageHandler),
 		container.get<PauseMediaMessageHandler>(SYMBOLS.PauseMediaMessageHandler),
 		container.get<ResumeMediaMessageHandler>(SYMBOLS.ResumeMediaMessageHandler),
