@@ -9,12 +9,12 @@ import { ChallengeStatus } from '../models/challenge-status';
 import {
 	completeChallengeSql,
 	createNewChallengeSql,
+	declineChallengeSql,
 	getUserActiveChallengeSql,
 	setBetLimitSql,
 	setChallengedBetSql,
 	setChallengerBetSql,
-	setStatusMessageIdSql,
-	updateChallengeStatusSql
+	setStatusMessageIdSql
 } from './wato-sql';
 
 @injectable()
@@ -49,7 +49,7 @@ export class WATODatabase {
 	}
 
 	async declineChallenge(challenge: Challenge): Promise<void> {
-		await this._pool.query(updateChallengeStatusSql(challenge, ChallengeStatus.Declined));
+		await this._pool.query(declineChallengeSql(challenge));
 	}
 
 	async completeChallenge(challenge: Challenge, winnerId: string): Promise<void> {

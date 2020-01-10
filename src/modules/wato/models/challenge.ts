@@ -8,7 +8,9 @@ export interface Challenge {
 	StatusMessageId?: string;
 	Description: string;
 	Status: ChallengeStatus;
-	BetLimit?: number | undefined;
-	ChallengerBet?: number | undefined;
-	ChallengedBet?: number | undefined;
+	BetLimit?: number;
+	ChallengerBet?: number;
+	ChallengedBet?: number;
+	CreationTimestamp?: Date;
+	CompletedTimestamp?: Date;
 }

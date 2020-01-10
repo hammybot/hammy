@@ -57,10 +57,11 @@ export const setChallengedBetSql = (challenge: Challenge, bet: number) => {
 	`;
 };
 
-export const updateChallengeStatusSql = (challenge: Challenge, status: ChallengeStatus) => {
+export const declineChallengeSql = (challenge: Challenge) => {
 	return SQL`
 		UPDATE public.challenges
-		SET "Status"=${status}
+		SET "Status"=${ChallengeStatus.Declined},
+			"CompletedTimestamp"=now()
 		WHERE "Id"=${challenge.Id};
 	`;
 };
@@ -69,7 +70,8 @@ export const completeChallengeSql = (challenge: Challenge, winnerId: string) => 
 	return SQL`
 		UPDATE public.challenges
 		SET "Status"=${ChallengeStatus.Completed},
-			"WinnerId"=${winnerId}
+			"WinnerId"=${winnerId},
+			"CompletedTimestamp"=now()
 		WHERE "Id"=${challenge.Id};
 	`;
 };

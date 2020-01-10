@@ -23,6 +23,8 @@ export const createChallengesTable = (schema: string, owner: string): string => 
 			"ChallengerBet" bigint,
 			"ChallengedBet" bigint,
 			"WinnerId" text,
+			"CreationTimestamp" timestamp with time zone NOT NULL DEFAULT now(),
+			"CompletedTimestamp" timestamp with time zone,
 			CONSTRAINT "PRIMARY_KEY" PRIMARY KEY ("Id")
 		)
 		WITH (
