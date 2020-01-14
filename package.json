@@ -8,7 +8,7 @@
 		"build:scripts": "tsc --project ./scripts",
 		"lint": "tslint -c tslint.json '**/*.{ts}'",
 		"dev:watch": "concurrently \"tsc -w\" \"nodemon dist/index.js\"",
-		"start": "node dist/index.js",
+		"start": "node dist/src/index.js",
 		"db:create-all": "npm run db:create-db && npm run db:create-schema",
 		"db:create-db": "npm run build:scripts && node dist/scripts/db-util.js --create-db",
 		"db:create-schema": "npm run build:scripts && node dist/scripts/db-util.js --create-schema",
