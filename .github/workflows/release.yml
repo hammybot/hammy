@@ -13,6 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Check docker version
-      run: echo Hello, world!
+      run: docker --version
     - name: Check docker-machine version
       run: docker-machine --version
