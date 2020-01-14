@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Check docker version
         run: docker --version
+      - name: Check keys before
+        run: ssh-add -L
       - name: Install docker-machine
         run: |
           base=https://github.com/docker/machine/releases/download/v0.16.0 &&
@@ -20,3 +22,5 @@ jobs:
         with:
           private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           public-key: ${{ secrets.SSH_PUBLIC_KEY }}
+      - name: Check keys after
+        run: ssh-add -L
