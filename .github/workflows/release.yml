@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Check docker version
         run: docker --version
-      - name: Check keys before
-        run: ssh-add -L
       - name: Install docker-machine
         run: |
           base=https://github.com/docker/machine/releases/download/v0.16.0 &&
@@ -22,5 +20,5 @@ jobs:
         with:
           private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           public-key: ${{ secrets.SSH_PUBLIC_KEY }}
-      - name: Check keys after
-        run: ssh-add -L
+      - name: Create digital ocean docker-machine
+        run: docker-machine create --driver=generic --generic-ip-address=$SSH_TARGET_IP --generic-ssh-user=$SSH_USERNAME --generic-ssh-key=~/.ssh/id_rsa --generic-ssh-port=22 HAMMY_DROPLET
