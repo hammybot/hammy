@@ -1,4 +1,4 @@
-import { Message, StreamDispatcher, VoiceChannel } from 'discord.js';
+import { Message, StreamDispatcher } from 'discord.js';
 import { Readable } from 'stream';
 
 export class DiscordMessage {

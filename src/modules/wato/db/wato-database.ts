@@ -4,7 +4,6 @@ import { Pool } from 'pg';
 
 import { SYMBOLS } from '../../../types';
 import { Challenge } from '../models/challenge';
-import { ChallengeStatus } from '../models/challenge-status';
 
 import {
 	completeChallengeSql,
