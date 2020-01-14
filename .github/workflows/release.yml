@@ -24,4 +24,4 @@ jobs:
         env:
           SSH_TARGET_IP: ${{ secrets.SSH_TARGET_IP }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-        run: docker-machine create --driver=generic --generic-ip-address=$SSH_TARGET_IP --generic-ssh-user=$SSH_USERNAME --generic-ssh-key ~/.ssh/id_rsa --generic-ssh-port=22 vm
+        run: docker-machine create --driver=generic --generic-ip-address=$SSH_TARGET_IP --generic-ssh-user=$SSH_USERNAME --generic-ssh-key ~/.ssh/id_rsaa --generic-ssh-port=22 vm
