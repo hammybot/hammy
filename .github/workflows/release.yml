@@ -16,6 +16,6 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_TARGET_IP }}
-          username: ${{ secrets.SSH_USERNAME }}
+          username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: ls -al
