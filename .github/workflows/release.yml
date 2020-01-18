@@ -1,6 +1,8 @@
 name: Release hammy to production
 on:
   push:
+    branches:
+      - master
     tags:
       - v*
 jobs:
