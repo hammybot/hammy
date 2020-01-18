@@ -23,5 +23,8 @@ RUN apk --no-cache --virtual build-dependencies add \
 COPY . /bot
 RUN yarn build
 
+# Run unit tests
+RUN yarn test
+
 # Start bot
 CMD [ "yarn", "start" ]
