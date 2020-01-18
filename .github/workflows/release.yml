@@ -17,5 +17,5 @@ jobs:
         with:
           host: ${{ secrets.SSH_TARGET_IP }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key_path: ~/.ssh/id_rsa
           script: ls -al
