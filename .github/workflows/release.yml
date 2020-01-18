@@ -1,4 +1,4 @@
-name: Release hammy to droplet
+name: Release hammy to production
 on:
   push:
     tags:
@@ -7,15 +7,16 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Execute ssh command
-        uses: maddox/actions/ssh@master
+      - name: Restart hammy container with latest image
+        uses: appleboy/ssh-action@master
         env:
-          HOST: ${{ secrets.SSH_HOST_IP }}
-          USER: ${{ secrets.SSH_USER }}
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DISCORD_API_TOKEN: ${{ secrets.DISCORD_API_KEY }}
         with:
-          args: |
+          host: ${{ secrets.SSH_HOST_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DISCORD_API_TOKEN
+          script: |
             docker stop hammy
             docker rm hammy
             docker rmi moosebot/hammy
