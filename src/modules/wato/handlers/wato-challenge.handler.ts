@@ -60,6 +60,10 @@ export class WATOChallengeMessageHandler implements MessageHandler {
 			return this._watoHelper.createWatoValidationEmbed(`Bot's can't play the odds game...`);
 		}
 
+		if (challenger.id === challenged.id) {
+			return this._watoHelper.createWatoValidationEmbed(`You can't challenge yourself.`);
+		}
+
 		const challengerActiveChallenge = await this._watoDatabase.getUserActiveChallenge(challenger);
 		if (challengerActiveChallenge) {
 			return this._watoHelper.createWatoValidationEmbed(`You're already in a challenge! Finish that one first.`);

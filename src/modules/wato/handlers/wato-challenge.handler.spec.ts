@@ -108,6 +108,14 @@ describe('WATO Challenges Handler', () => {
 			assertThatValidationHasFailed();
 		});
 
+		it('validation fails if challenger is the same as the challenged user', async () => {
+			const challenger = { id: '1', bot: false } as any;
+			const challenged = { id: '1', bot: false } as any;
+			await sut.handleMessage(createMockWatoMessage(challenger, challenged));
+
+			assertThatValidationHasFailed();
+		});
+
 		it('create a new challenge in database', async () => {
 			const challenger = { id: '1', bot: false } as any;
 			const challenged = { id: '2', bot: false } as any;
