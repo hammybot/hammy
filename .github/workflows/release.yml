@@ -7,21 +7,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check docker version
-        run: docker --version
-      - name: Install docker-machine
-        run: |
-          base=https://github.com/docker/machine/releases/download/v0.16.0 &&
-          curl -L $base/docker-machine-$(uname -s)-$(uname -m) >/tmp/docker-machine &&
-          sudo mv /tmp/docker-machine /usr/local/bin/docker-machine &&
-          chmod +x /usr/local/bin/docker-machine
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v1
         with:
           private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           public-key: ${{ secrets.SSH_PUBLIC_KEY }}
-      - name: Create digital ocean docker-machine
-        env:
-          SSH_TARGET_IP: ${{ secrets.SSH_TARGET_IP }}
-          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-        run: docker-machine create --driver=generic --generic-ip-address=$SSH_TARGET_IP --generic-ssh-key ~/.ssh/id_rsa vm
+      - name: Execute ssh command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_TARGET_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: ls -al
