@@ -13,7 +13,11 @@ jobs:
           HOST: ${{ secrets.SSH_HOST_IP }}
           USER: ${{ secrets.SSH_USER }}
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DISCORD_API_TOKEN: ${{ secrets.DISCORD_API_KEY }}
         with:
           args: |
-            docker ps -a
-            docker images -a
+            docker stop hammy
+            docker rm hammy
+            docker rmi moosebot/hammy
+            docker pull moosebot/hammy:latest
+            docker run --name hammy --env DISCORD_BOT_TOKEN=$DISCORD_API_TOKEN -d moosebot/hammy:latest
