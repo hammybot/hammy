@@ -7,15 +7,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v1
-        with:
-          private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          public-key: ${{ secrets.SSH_PUBLIC_KEY }}
+      # - name: Install SSH key
+      #   uses: shimataro/ssh-key-action@v1
+      #   with:
+      #     private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     public-key: ${{ secrets.SSH_PUBLIC_KEY }}
       - name: Execute ssh command
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_TARGET_IP }}
           username: ${{ secrets.SSH_USERNAME }}
-          key_path: /home/runner/.ssh/id_rsa
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: ls -al
