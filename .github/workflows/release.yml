@@ -1,0 +1,22 @@
+name: Release hammy to Production Digital Ocean droplet
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # - name: Install SSH key
+      #   uses: shimataro/ssh-key-action@v1
+      #   with:
+      #     private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     public-key: ${{ secrets.SSH_PUBLIC_KEY }}
+      - name: Execute ssh command
+        uses: maddox/actions/ssh@master
+        env:
+          HOST: ${{ secrets.SSH_HOST_IP }}
+          USER: root
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        with:
+          args: ls -al
