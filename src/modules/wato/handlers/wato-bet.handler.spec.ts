@@ -119,11 +119,16 @@ describe('WATO Bet Handler', () => {
 			);
 		});
 
-		it('validation fails when bet is set to 1', async () => {
+		it('validation passes when bet is 1', async () => {
 			mockActiveChallenge();
 			await sut.handleMessage(createMockWatoMessage(false, '1'));
 
-			assertThatValidationHasFailed();
+			mockWatoDatabase.verify(x=> x.setChallengedBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(1)), Times.once());
+			mockChannel.verify(x=> x.send(TypeMoq.It.isValue(`Got it!`)), Times.once());
+			mockWatoDatabase.setup(db=> db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
+				return { BetLimit: 10, Status: ChallengeStatus.PendingBets } as any;
+			});
+			
 		});
 
 		it('validation fails when bet is less than 1', async () => {
