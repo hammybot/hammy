@@ -3,10 +3,8 @@ on:
   push:
     branches-ignore:
       - master
-    paths:
-      - src/**
 jobs:
-  build:
+  build-feature:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
