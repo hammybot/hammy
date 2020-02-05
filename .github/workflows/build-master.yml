@@ -1,4 +1,4 @@
-name: Build 'latest' image
+name: Build 'latest' image and push to Docker Hub
 on:
   push:
     branches:
