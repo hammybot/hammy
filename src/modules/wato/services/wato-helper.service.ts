@@ -47,7 +47,7 @@ export class WatoHelperService {
 			.setColor('#ffffff')
 			.setTitle(`__${username}__ challenged you!`)
 			.setDescription(`\`\`\`${challenge.Description}\`\`\``)
-			.addField(`**Status**`, `Respond here with a number between 1 and ${betLimit.toLocaleString()}`, true)
+			.addField(`**Status**`, `Respond here with a whole number between 1 and ${betLimit.toLocaleString()}`, true)
 			.setFooter(this.getHelpFooterText(), QUESTION_MARK_ICON);
 	}
 
