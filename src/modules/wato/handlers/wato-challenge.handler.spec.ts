@@ -142,14 +142,17 @@ describe('WATO Challenges Handler', () => {
 		it('send an initial status message to channel and saves new message id to database', async () => {
 			const challenger = { id: '1', bot: false } as any;
 			const challenged = { id: '2', bot: false } as any;
+
+			mockMessage.setup(msg => msg.getGuildMember(TypeMoq.It.isValue('1'))).returns(() => challenger);
+			mockMessage.setup(msg => msg.getGuildMember(TypeMoq.It.isValue('2'))).returns(() => challenged);
 			mockMessage.setup(msg => msg.getContent()).returns(() => {
 				return '<@81440962496172032> what are the odds that you do a thing?';
 			});
 			mockActiveChallenge();
 			mockWatoHelperService.setup(
 				helper => helper.createWatoStatusEmbed(
-					TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
-					TypeMoq.It.isAny(), TypeMoq.It.isAny()
+					TypeMoq.It.isValue(challenger), TypeMoq.It.isValue(challenged), TypeMoq.It.isAny(),
+					TypeMoq.It.isAny()
 				)
 			).returns(() => fakeStatusMessage as any);
 

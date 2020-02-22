@@ -73,8 +73,8 @@ describe('WATO Response Handler', () => {
 	});
 
 	describe('Handle Message', () => {
-		const challenger = { id: '1', user: { username: 'user-1' }, send: (x: any) => { } };
-		const challenged = { id: '2', user: { username: 'user-2' }, send: (x: any) => { } };
+		const challenger = { id: '1', user: { username: 'user-1' }, send: (x: any) => { } } as any;
+		const challenged = { id: '2', user: { username: 'user-2' }, send: (x: any) => { } } as any;
 
 		const mockChallenger = TypeMoq.Mock.ofInstance(challenger);
 		const mockChallenged = TypeMoq.Mock.ofInstance(challenged);
@@ -155,8 +155,13 @@ describe('WATO Response Handler', () => {
 
 		it('updates existing WATO status message to new status', async () => {
 			mockMessage.setup(md => md.getClientChannel(TypeMoq.It.isAny())).returns(() => mockChannel.object);
+
+			mockMessage.setup(md => md.getGuildMember(TypeMoq.It.isValue('1'))).returns(() => challenger);
+			mockMessage.setup(md => md.getGuildMember(TypeMoq.It.isValue('2'))).returns(() => challenged);
 			mockWatoHelperService.setup(
-				mock => mock.createWatoStatusEmbed(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())
+				mock => mock.createWatoStatusEmbed(
+					TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()
+				)
 			).returns(() => fakeStatusUpdate);
 
 			await sut.handleMessage(createMockWatoMessage('200'));

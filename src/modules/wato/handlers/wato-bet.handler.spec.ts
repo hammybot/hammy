@@ -123,12 +123,12 @@ describe('WATO Bet Handler', () => {
 			mockActiveChallenge();
 			await sut.handleMessage(createMockWatoMessage(false, '1'));
 
-			mockWatoDatabase.verify(x=> x.setChallengedBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(1)), Times.once());
-			mockChannel.verify(x=> x.send(TypeMoq.It.isValue(`Got it!`)), Times.once());
-			mockWatoDatabase.setup(db=> db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
+			mockWatoDatabase.verify(x => x.setChallengedBet(TypeMoq.It.isAny(), TypeMoq.It.isValue(1)), Times.once());
+			mockChannel.verify(x => x.send(TypeMoq.It.isValue(`Got it!`)), Times.once());
+			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isAny())).returns(() => {
 				return { BetLimit: 10, Status: ChallengeStatus.PendingBets } as any;
 			});
-			
+
 		});
 
 		it('validation fails when bet is less than 1', async () => {
@@ -209,8 +209,11 @@ describe('WATO Bet Handler', () => {
 
 		it('sends out a result message when game is complete to original channel', async () => {
 			mockMessage.setup(md => md.getClientChannel(TypeMoq.It.isAny())).returns(() => mockChannel.object);
+
+			mockMessage.setup(md => md.getGuildMemberByChannel(TypeMoq.It.isAny(), TypeMoq.It.isValue('1'))).returns(() => challenger as any);
+			mockMessage.setup(md => md.getGuildMemberByChannel(TypeMoq.It.isAny(), TypeMoq.It.isValue('2'))).returns(() => challenged as any);
 			mockWatoHelperService.setup(
-				mock => mock.createWatoResultsEmbed(TypeMoq.It.isValue('1'), TypeMoq.It.isAny(), TypeMoq.It.isAny())
+				mock => mock.createWatoResultsEmbed(TypeMoq.It.isValue(challenger as any), TypeMoq.It.isValue(challenged as any), TypeMoq.It.isAny())
 			).returns(() => fakeResultMessage as any);
 
 			mockActiveChallenge(80, 80);
