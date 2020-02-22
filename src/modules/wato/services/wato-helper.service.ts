@@ -1,4 +1,4 @@
-import { Client, RichEmbed, User } from 'discord.js';
+import { Client, GuildMember, RichEmbed, User } from 'discord.js';
 import { injectable } from 'inversify';
 
 import { Challenge } from '../models/challenge';
@@ -9,37 +9,29 @@ const QUESTION_MARK_ICON = 'https://i.imgur.com/DbxSPZy.png';
 @injectable()
 export class WatoHelperService {
 	async createWatoStatusEmbed(
-		challengerId: string, challengedId: string, status: ChallengeStatus, description: string, client: Client
+		challengerUser: GuildMember, challengedUser: GuildMember, status: ChallengeStatus, description: string
 	): Promise<RichEmbed> {
-		const challengerUser = await client.fetchUser(challengerId);
-		const challengedUser = await client.fetchUser(challengedId);
-
 		return new RichEmbed()
 			.setColor(this.getChallengeStatusColor(status))
-			.setTitle(`__${challengerUser.username}__ has challenged __${challengedUser.username}__ to a game of odds!`)
+			.setTitle(`__${challengerUser.displayName}__ has challenged __${challengedUser.displayName}__ to a game of odds!`)
 			.setDescription(`\`\`\`${description}\`\`\``)
 			.addField('**Status**', this.getChallengeStatusText(status, challengedUser))
 			.setFooter(this.getHelpFooterText(), QUESTION_MARK_ICON);
 	}
 
-	async createWatoResultsEmbed(winnerId: string, challenge: Challenge, client: Client): Promise<RichEmbed> {
-		const winnerWasChallenger = winnerId === challenge.ChallengerId;
-
-		const winningUser = await client.fetchUser(winnerId);
-		const losingUser = await client.fetchUser(
-			winnerWasChallenger ? challenge.ChallengedId : challenge.ChallengerId
-		);
+	async createWatoResultsEmbed(winningUser: GuildMember, losingUser: GuildMember, challenge: Challenge): Promise<RichEmbed> {
+		const winnerWasChallenger = winningUser.id === challenge.ChallengerId;
 
 		const winningBet = Number(winnerWasChallenger ? challenge.ChallengerBet : challenge.ChallengedBet);
 		const losingBet = Number(winnerWasChallenger ? challenge.ChallengedBet : challenge.ChallengerBet);
 
 		return new RichEmbed()
 			.setColor('#0099ff')
-			.setTitle(`__${winningUser.username}__ has defeated __${losingUser.username}__ in a game of odds!`)
+			.setTitle(`__${winningUser.displayName}__ has defeated __${losingUser.displayName}__ in a game of odds!`)
 			.setDescription(`\`\`\`${challenge.Description}\`\`\``)
-			.setThumbnail(`${winningUser.displayAvatarURL}`)
-			.addField(`${winningUser.username}'s bet`, `${winningBet.toLocaleString()}`, true)
-			.addField(`${losingUser.username}'s bet`, `${losingBet.toLocaleString()}`, true);
+			.setThumbnail(`${winningUser.user.displayAvatarURL}`)
+			.addField(`${winningUser.displayName}'s bet`, `${winningBet.toLocaleString()}`, true)
+			.addField(`${losingUser.displayName}'s bet`, `${losingBet.toLocaleString()}`, true);
 	}
 
 	createWatoDmEmbed(username: string, betLimit: number, challenge: Challenge): RichEmbed {
@@ -125,7 +117,7 @@ export class WatoHelperService {
 			);
 	}
 
-	private getChallengeStatusText(challengeStatus: ChallengeStatus, challengedUser: User): string {
+	private getChallengeStatusText(challengeStatus: ChallengeStatus, challengedUser: GuildMember): string {
 		switch (challengeStatus) {
 			case ChallengeStatus.Declined:
 				return `<@${challengedUser.id}> declined :frowning:`;

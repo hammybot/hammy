@@ -141,16 +141,24 @@ describe('WATO Decline Handler', () => {
 		});
 
 		it('original status message is updated to show declined status', async () => {
+			const fakeChallenged = { id: '1' } as any;
+			const fakeChallenger = { id: '2' } as any;
 			mockWatoDatabase.setup(db => db.getUserActiveChallenge(TypeMoq.It.isValue(fakeAuthor)))
 				.returns(() => {
 					return {
 						Status: ChallengeStatus.PendingAccept,
-						ChallengedId: '1'
+						ChallengedId: '1',
+						ChallengerId: '2'
 					} as any;
 				});
 			mockMessage.setup(md => md.getClientChannel(TypeMoq.It.isAny())).returns(() => mockChannel.object);
+			mockMessage.setup(m => m.getGuildMember(TypeMoq.It.isValue('2'))).returns(() => fakeChallenger);
+			mockMessage.setup(m => m.getGuildMember(TypeMoq.It.isValue('1'))).returns(() => fakeChallenged);
+
 			mockWatoHelperService.setup(
-				mock => mock.createWatoStatusEmbed(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())
+				mock => mock.createWatoStatusEmbed(
+					TypeMoq.It.isValue(fakeChallenger), TypeMoq.It.isValue(fakeChallenged), TypeMoq.It.isAny(), TypeMoq.It.isAny()
+				)
 			).returns(() => fakeStatusUpdate);
 
 			await sut.handleMessage(mockMessage.object);
