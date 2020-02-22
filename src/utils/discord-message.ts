@@ -1,4 +1,4 @@
-import { Message, StreamDispatcher } from 'discord.js';
+import { Message, StreamDispatcher, TextChannel } from 'discord.js';
 import { Readable } from 'stream';
 
 export class DiscordMessage {
@@ -42,6 +42,11 @@ export class DiscordMessage {
 
 	getGuildMember(id: string) {
 		return this._message.guild.members.get(id);
+	}
+
+	getGuildMemberByChannel(channelId: string, userId: string) {
+		const channel = this._message.client.channels.get(channelId)! as TextChannel;
+		return channel.guild.members.get(userId)!;
 	}
 
 	getDispatcher(): StreamDispatcher | null {

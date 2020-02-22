@@ -79,7 +79,13 @@ export class WATOBetMessageHandler implements MessageHandler {
 		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
-		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winnerId, challenge, msg.getClient());
+		const winningUser = msg.getGuildMemberByChannel(challenge.ChannelId, winnerId)!;
+		const losingUser = msg.getGuildMemberByChannel(
+			challenge.ChannelId,
+			winnerId === challenge.ChallengerId ? challenge.ChallengedId : challenge.ChallengerId
+		)!;
+
+		const resultsEmbed = await this._watoHelper.createWatoResultsEmbed(winningUser, losingUser, challenge);
 		originalChannel.send(resultsEmbed);
 	}
 }

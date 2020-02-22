@@ -64,9 +64,11 @@ export class WATOResponseMessageHandler implements MessageHandler {
 	}
 
 	private async updateWatoStatusMessage(msg: DiscordMessage, challenge: Challenge) {
+		const challengerUser = msg.getGuildMember(challenge.ChallengerId)!;
+		const challengedUser = msg.getGuildMember(challenge.ChallengedId)!;
+
 		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
-			challenge.ChallengerId, challenge.ChallengedId, ChallengeStatus.PendingBets,
-			challenge.Description, msg.getClient()
+			challengerUser, challengedUser, ChallengeStatus.PendingBets, challenge.Description
 		);
 
 		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;

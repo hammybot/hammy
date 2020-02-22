@@ -41,9 +41,11 @@ export class WATODeclineMessageHandler implements MessageHandler {
 		const originalChannel = msg.getClientChannel(challenge.ChannelId) as TextChannel;
 		if (!originalChannel) { return; }
 
+		const challengerUser = msg.getGuildMember(challenge.ChallengerId)!;
+		const challengedUser = msg.getGuildMember(challenge.ChallengedId)!;
+
 		const newStatusEmbed = await this._watoHelper.createWatoStatusEmbed(
-			challenge.ChallengerId, challenge.ChallengedId, ChallengeStatus.Declined,
-			challenge.Description, msg.getClient()
+			challengerUser, challengedUser, ChallengeStatus.Declined, challenge.Description
 		);
 
 		const statusMessage = await originalChannel.fetchMessage(challenge.StatusMessageId as string);
