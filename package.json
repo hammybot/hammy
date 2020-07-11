@@ -1,6 +1,6 @@
 {
 	"name": "hammy",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "bot for discord",
 	"main": "src/index.js",
 	"scripts": {
