@@ -16,6 +16,13 @@ export const createNewChallengeSql = (challenge: Challenge) => {
 	`;
 };
 
+export const getAllFinishedChallengesSql = () => {
+	return SQL`
+		SELECT * FROM public.challenges
+		WHERE "Status" IN ('CMP');
+	`;
+};
+
 export const getUserActiveChallengeSql = (user: User) => {
 	return SQL`
 		SELECT * FROM public.challenges

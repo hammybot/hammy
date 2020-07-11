@@ -3,6 +3,7 @@ import { injectable } from 'inversify';
 
 import { Challenge } from '../models/challenge';
 import { ChallengeStatus } from '../models/challenge-status';
+import { Stats } from '../models/stats';
 
 const QUESTION_MARK_ICON = 'https://i.imgur.com/DbxSPZy.png';
 
@@ -115,6 +116,42 @@ export class WatoHelperService {
 				`**You need to respond with a bet to my DM! Just respond with a number.`,
 				`\`100\``
 			);
+	}
+
+	createWatoTopRankingsEmbed(stats: Stats[]): RichEmbed {
+		const firstPlace = stats[0];
+		const secondPlace = stats[1];
+		const thirdPlace = stats[2];
+		const fourthPlace = stats[3];
+		const fifthPlace = stats[4];
+		const embed = new RichEmbed()
+			.setColor('#ffeb00')
+			.setTitle(`__${firstPlace.User!.username}__ is currently the leader of _The Bunch_ !`)
+			.setThumbnail(`${firstPlace.User!.displayAvatarURL}`);
+		embed.addField(
+			'Overall - Most wins',
+			`
+			${firstPlace ? this.createRankText(':first_place:', firstPlace) : ''}
+			${secondPlace ? this.createRankText(':second_place:', secondPlace) : ''}
+			${thirdPlace ? this.createRankText(':third_place:', thirdPlace) : ''}
+			${fourthPlace ? this.createRankText(':four:', fourthPlace) : ''}
+			${fifthPlace ? this.createRankText(':five:', fifthPlace) : ''}
+			`
+		);
+
+		return embed;
+	}
+
+	private createRankText(emoji: string, stats: Stats) {
+		const winString = `Wins: **${stats.Wins}**`;
+		const lossString = `Losses: **${stats.Losses}**`;
+		const winPercentageString = `**${this.createPercentageString(stats.Wins, stats.Losses)}%**`;
+
+		return `${emoji} <@${stats.User!.id}> - ${winString} | ${lossString} | ${winPercentageString}`;
+	}
+
+	private createPercentageString(wins: number, losses: number): string {
+		return (wins / (wins + losses) * 100).toFixed(0);
 	}
 
 	private getChallengeStatusText(challengeStatus: ChallengeStatus, challengedUser: GuildMember): string {

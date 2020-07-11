@@ -17,7 +17,8 @@ import {
 	WATOChallengeMessageHandler,
 	WATODeclineMessageHandler,
 	WATOHelpMessageHandler,
-	WATOResponseMessageHandler,
+	WATOLeaderboardMessageHandler,
+	WATOResponseMessageHandler
 } from '../modules';
 import { WATODatabase } from '../modules/wato/db/wato-database';
 import { WatoHelperService } from '../modules/wato/services/wato-helper.service';
@@ -56,6 +57,7 @@ container.bind<WATOResponseMessageHandler>(SYMBOLS.WATOResponseMessageHandler).t
 container.bind<WATODeclineMessageHandler>(SYMBOLS.WATODeclineMessageHandler).to(WATODeclineMessageHandler);
 container.bind<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler).to(WATOBetMessageHandler);
 container.bind<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler).to(WATOHelpMessageHandler);
+container.bind<WATOLeaderboardMessageHandler>(SYMBOLS.WATOLeaderboardMessageHandler).to(WATOLeaderboardMessageHandler);
 
 container.bind<MessageHandler[]>(SYMBOLS.MessageHandlers).toConstantValue(_createHandlers());
 
@@ -76,6 +78,7 @@ function _createHandlers(): MessageHandler[] {
 		container.get<WATOResponseMessageHandler>(SYMBOLS.WATOResponseMessageHandler),
 		container.get<WATODeclineMessageHandler>(SYMBOLS.WATODeclineMessageHandler),
 		container.get<WATOBetMessageHandler>(SYMBOLS.WATOBetMessageHandler),
-		container.get<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler)
+		container.get<WATOHelpMessageHandler>(SYMBOLS.WATOHelpMessageHandler),
+		container.get<WATOLeaderboardMessageHandler>(SYMBOLS.WATOLeaderboardMessageHandler)
 	];
 }

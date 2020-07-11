@@ -9,6 +9,7 @@ import {
 	completeChallengeSql,
 	createNewChallengeSql,
 	declineChallengeSql,
+	getAllFinishedChallengesSql,
 	getUserActiveChallengeSql,
 	setBetLimitSql,
 	setChallengedBetSql,
@@ -53,5 +54,10 @@ export class WATODatabase {
 
 	async completeChallenge(challenge: Challenge, winnerId: string): Promise<void> {
 		await this._pool.query(completeChallengeSql(challenge, winnerId));
+	}
+
+	async getAllFinishedChallenges(): Promise<Challenge[]> {
+		const result = await this._pool.query(getAllFinishedChallengesSql());
+		return result.rows;
 	}
 }

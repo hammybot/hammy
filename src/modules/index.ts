@@ -8,4 +8,5 @@ export * from './wato/handlers/wato-challenge.handler';
 export * from './wato/handlers/wato-decline.handler';
 export * from './wato/handlers/wato-response.handler';
 export * from './wato/handlers/wato-help.handler';
+export * from './wato/handlers/wato-lb.handler';
 

@@ -9,6 +9,7 @@ export interface Challenge {
 	Description: string;
 	Status: ChallengeStatus;
 	BetLimit?: number;
+	WinnerId?: string;
 	ChallengerBet?: number;
 	ChallengedBet?: number;
 	CreationTimestamp?: Date;

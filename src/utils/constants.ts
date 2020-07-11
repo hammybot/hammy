@@ -10,7 +10,8 @@ export const REGEX = {
 	COMMAND_STOP: /^!stop$/,
 	COMMAND_PLAY_YOUTUBE: /^(!play )(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/,
 	VALID_NUMBER: /(?<=\s|^)-?\d+(,\d+)*/,
-	WATO_HELP: /^!wato$/
+	WATO_HELP: /^!wato$/,
+	WATO_LEADERBOARD: /^!wato-lb$/
 };
 
 export const MESSAGE_TARGETS = {
