@@ -7,15 +7,19 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Debug (typescript)",
-			"program": "${workspaceFolder}/src/index.ts",
-			"preLaunchTask": "npm: build",
-			"sourceMaps": true,
-			"smartStep": true,
-			"internalConsoleOptions": "openOnSessionStart",
-			"outFiles": [
-				"${workspaceFolder}/dist/**/*.js"
-			]
+			"name": "Debug bot",
+			"protocol": "inspector",
+			"args": [
+				"${workspaceRoot}/src/index.ts"
+			],
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+				"-r",
+				"./.pnp.cjs",
+				"-r",
+				"ts-node/register"
+			],
+			"internalConsoleOptions": "neverOpen"
 		}
 	]
 }

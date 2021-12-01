@@ -1,33 +1,21 @@
 {
 	"compilerOptions": {
-		"types": [
-			"reflect-metadata",
-			"node",
-			"mocha"
-		],
-		"lib": [
-			"es6",
-			"dom"
-		],
-		"target": "es2017",
-		"module": "commonjs",
-		"allowJs": true,
-		"checkJs": true,
-		"outDir": "./dist",
+		"module": "CommonJS", // required
+		"target": "ESNext", // required
+		"noImplicitAny": true,
 		"sourceMap": true,
 		"strict": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
+		"outDir": "dist",
+		"emitDecoratorMetadata": true, // required
+		"experimentalDecorators": true, // required
+		"declaration": false,
+		"importHelpers": true, // required
+		"forceConsistentCasingInFileNames": true,
+		"moduleResolution": "Node", // required
+		"esModuleInterop": true, // required
 		"resolveJsonModule": true
 	},
-	"include": [
-		"**/*.ts"
-	],
 	"exclude": [
-		"node_modules",
-		"dist",
-		"scripts"
+		"node_modules"
 	]
 }

@@ -1,65 +1,27 @@
 {
 	"name": "hammy",
-	"version": "1.0.3",
-	"description": "bot for discord",
-	"main": "src/index.js",
+	"version": "2.0.0",
+	"packageManager": "yarn@3.1.1",
+	"type": "commonjs",
+	"dependencies": {
+		"discord.js": "^13.3.1",
+		"discordx": "^9.0.1",
+		"dotenv": "^10.0.0",
+		"reflect-metadata": "^0.1.13"
+	},
 	"scripts": {
 		"build": "tsc",
-		"build:scripts": "tsc --project ./scripts",
-		"lint": "tslint -c tslint.json '**/*.{ts}'",
-		"dev:watch": "concurrently \"tsc -w\" \"nodemon dist/src/index.js\"",
-		"start": "node dist/src/index.js",
-		"db:create-all": "npm run db:create-db && npm run db:create-schema",
-		"db:create-db": "npm run build:scripts && node dist/scripts/db-util.js --create-db",
-		"db:create-schema": "npm run build:scripts && node dist/scripts/db-util.js --create-schema",
-		"db:drop-all": "npm run build:scripts && node dist/scripts/db-util.js --drop-db",
-		"db:drop-schema": "npm run build:scripts && node dist/scripts/db-util.js --drop-schema",
-		"test": "mocha -r ts-node/register \"src/**/*.spec.ts\""
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/moosebot/hammy.git"
-	},
-	"keywords": [
-		"bot",
-		"streaming",
-		"music",
-		"discord",
-		"node"
-	],
-	"author": "moosebot",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/moosebot/hammy/issues"
-	},
-	"homepage": "https://github.com/moosebot/hammy#readme",
-	"dependencies": {
-		"discord.js": "^11.5.1",
-		"dotenv": "^8.0.0",
-		"inversify": "^5.0.1",
-		"node-opus": "^0.3.2",
-		"pg": "^7.12.0",
-		"reflect-metadata": "^0.1.13",
-		"sql-template-strings": "^2.2.2",
-		"ts-stopwatch": "^0.0.4",
-		"ytdl-core": "^0.29.3"
+		"start": "node ./dist/src/index.js"
 	},
 	"devDependencies": {
-		"@types/chai": "^4.2.2",
-		"@types/chai-as-promised": "^7.1.2",
-		"@types/dotenv": "^6.1.1",
-		"@types/mocha": "^5.2.7",
-		"@types/node": "^12.6.8",
-		"@types/pg": "^7.4.14",
-		"chai": "^4.2.0",
-		"chai-as-promised": "^7.1.1",
-		"concurrently": "^4.1.1",
-		"mocha": "^6.2.0",
-		"nodemon": "^1.19.1",
-		"pgtools": "^0.3.0",
-		"ts-node": "^8.3.0",
-		"tslint": "^5.18.0",
-		"typemoq": "^2.1.0",
-		"typescript": "^3.5.3"
+		"@discordx/importer": "^1.1.2",
+		"@types/node": "^16.11.11",
+		"ts-node": "^10.4.0",
+		"tslib": "^2.3.1",
+		"typescript": "^4.5.2"
+	},
+	"engines": {
+		"node": ">=17.0.0",
+		"npm": ">=8.0.0"
 	}
 }

@@ -1,44 +1,50 @@
-import { config } from 'dotenv';
+import "reflect-metadata";
+import { config } from "dotenv";
 config();
 
-// Have to run the configuration step before the container runs
-// tslint:disable-next-line: ordered-imports
-import { Pool } from 'pg';
-import { Bot } from './core/bot';
-import container from './core/inversify.config';
-import { SYMBOLS } from './types';
+import { Intents, Interaction, Message } from "discord.js";
+import { Client } from "discordx";
+import { importx } from "@discordx/importer";
 
-const bot = container.get<Bot>(SYMBOLS.Bot);
-bot.startBot().then(() => {
-	console.log('hammy ready!');
-}).catch((error) => {
-	console.error(error);
-});
-
-const dbPool = container.get<Pool>(SYMBOLS.DbPool);
-dbPool.on('error', (err) => {
-	console.error('DB Pool: Unexpected error on idle db client', err);
-});
-
-// Process exiting cleanup code
-const exitHandler = (options: any, exitCode: any) => {
-	if (options.exit) {
-		dbPool.end().then(() => {
-			console.log('DB Pool: Connection successfully closed');
-			process.exit();
-		});
+const isDev = () => {
+	if (process.env.NODE_ENV === "development") {
+		return true;
 	}
-};
+	return false;
+}
 
-// do something when app is closing
-process.on('exit', exitHandler.bind(null, { cleanup: true }));
+const client = new Client({
+	botId: isDev() ? "test-bot" : "hammy",
+	botGuilds: isDev() ? ["768357607931904022"] : undefined,
+	intents: [
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_MEMBERS,
+		Intents.FLAGS.GUILD_MESSAGES,
+		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+		Intents.FLAGS.GUILD_VOICE_STATES
+	],
+	silent: false
+});
 
-// catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, { exit: true }));
+client.once("ready", async () => {
+	await client.initApplicationCommands({
+		guild: { log: true },
+		global: { log: true }
+	});
+	await client.initApplicationPermissions(true);
+});
 
-// catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', exitHandler.bind(null, { exit: true }));
-process.on('SIGUSR2', exitHandler.bind(null, { exit: true }));
+client.on("interactionCreate", (interaction: Interaction) => {
+	client.executeInteraction(interaction);
+});
 
-// catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
+client.on("messageCreate", (message: Message) => {
+	client.executeCommand(message);
+});
+
+async function start() {
+	await importx(__dirname + "/commands/**/*.{ts,js}");
+	await client.login(process.env.DISCORD_BOT_TOKEN ?? "")
+}
+
+start();
