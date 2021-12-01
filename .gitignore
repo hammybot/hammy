@@ -32,8 +32,5 @@ Thumbs.db
 # ignore environment configuration
 .env
 
-# ignore vscode settings
-.vscode/settings.json
-
 # ignore todo
 TODO.md
