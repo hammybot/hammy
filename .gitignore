@@ -1,45 +1,19 @@
-# compiled output
-dist/
-tmp/
-out-tsc/
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# yarn
-.yarn/*
-!.yarn/cache
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+# Test binary, built with `go test -c`
+*.test
 
-# dependencies
-node_modules/
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# Dependency directories (remove the comment below to include it)
+# vendor/
 
-# misc
-.sass-cache/
-connect.lock/
-coverage/
-libpeerconnection.log/
-npm-debug.log
-yarn-error.log
-testem.log
-typings/
-
-# System Files
-.DS_Store
-Thumbs.db
-
-# ignore environment configuration
+.vscode/settings.json
 .env
-
-# ignore todo
 TODO.md
