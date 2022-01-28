@@ -8,4 +8,6 @@ Bot built for discord w/ Node and [discord.js](https://github.com/discordjs/disc
 * Create a `.env` file using the `.env.example` template and modify the following:
   * **DISCORD_BOT_TOKEN**: Create a discord application and bot token for development testing [here](https://discordapp.com/developers/applications/)
 * Install [Go](https://go.dev/dl/)
-* Run `go build && hammy.exe`
+* `go run .`
+
+## Running tests

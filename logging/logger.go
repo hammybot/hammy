@@ -1,5 +1,7 @@
 package logging
 
 type Logger interface {
-	Log(logLevel LogLevel, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Debugf(format string, args ...interface{})
 }
