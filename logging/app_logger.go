@@ -22,9 +22,16 @@ func CreateAppLogger(logLevel LogLevel) Logger {
 	return appLogger
 }
 
-func (appLogger appLogger) Log(logLevel LogLevel, args ...interface{}) {
-	logrusLevel := getLogrusLevel(logLevel)
-	appLogger.internalLogger.Log(logrusLevel, args...)
+func (appLogger *appLogger) Errorf(format string, args ...interface{}) {
+	appLogger.internalLogger.Errorf(format, args...)
+}
+
+func (appLogger *appLogger) Infof(format string, args ...interface{}) {
+	appLogger.internalLogger.Infof(format, args...)
+}
+
+func (appLogger *appLogger) Debugf(format string, args ...interface{}) {
+	appLogger.internalLogger.Debugf(format, args...)
 }
 
 func getLogrusLevel(logLevel LogLevel) logrus.Level {
