@@ -1,44 +1,30 @@
 package bot
 
 import (
+	"fmt"
+	"os"
+	"os/signal"
+
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 )
 
 func RunBot(botSession *discordgo.Session) error {
-	// botAuth := fmt.Sprintf("Bot %v", config.DiscordBotToken)
-	// bot_session, initErr := discordgo.New(botAuth)
-	// if initErr != nil {
-	// 	return fmt.Errorf("unable to create bot session: %v", initErr)
-	// }
+	err := botSession.Open()
+	if err != nil {
+		return fmt.Errorf("unable to connect bot to discord: %v", err)
+	}
+	log.Print("hammy is up and running...")
 
-	// runErr := bot_session.Open()
-	// if runErr != nil {
-	// 	return fmt.Errorf("unable to connect bot to discord: %v", runErr)
-	// }
-	// logger.Infof("hammy is up and running...")
-	// bot_session.AddHandler(createContext(config, logger, pingMessage))
+	botSession.AddHandler(ping)
 
-	// defer bot_session.Close()
+	defer botSession.Close()
 
-	// stop := make(chan os.Signal, 1)
-	// signal.Notify(stop, os.Interrupt)
-	// <-stop
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
 
-	// logger.Infof("bot gracefully shutting down")
+	log.Print("hammy is shutting down...")
 
 	return nil
 }
-
-// func createContext(config config.AppConfig, logger logging.Logger, wrappedFunc func(BotContext, DiscordContext)) func(s *discordgo.Session, m *discordgo.MessageCreate) {
-// 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-// 		botContext := BotContext{
-// 			botConfig: config,
-// 			logger:    logger,
-// 		}
-// 		discordContext := DiscordContext{
-// 			session: s,
-// 			message: m,
-// 		}
-// 		wrappedFunc(botContext, discordContext)
-// 	}
-// }

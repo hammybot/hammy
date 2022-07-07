@@ -6,6 +6,7 @@ import (
 
 	"github.com/austinvalle/hammy/pkg/bot"
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 )
 
 const botTokenEnv = "DISCORD_BOT_TOKEN"
@@ -13,7 +14,7 @@ const botTokenEnv = "DISCORD_BOT_TOKEN"
 func main() {
 	err := realMain()
 	if err != nil {
-		fmt.Printf("err: %v", err)
+		log.Error().Err(err).Msg("")
 		os.Exit(1)
 	}
 }
