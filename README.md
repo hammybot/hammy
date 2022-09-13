@@ -1,13 +1,19 @@
 Hammy
 =========
-Bot built for discord w/ Node and [discord.js](https://github.com/discordjs/discord.js) .
+Utility bot built for Discord w/ Golang and [discordgo](https://github.com/bwmarrin/discordgo) .
 
-## Running hammy
+## Running hammy (local)
 
-* Clone the hammy git repo
-* Create a `.env` file using the `.env.example` template and modify the following:
+* Clone the repo
+* Set environment variables:
   * **DISCORD_BOT_TOKEN**: Create a discord application and bot token for development testing [here](https://discordapp.com/developers/applications/)
-* Install [Go](https://go.dev/dl/)
-* `go run .`
+* Install [Golang](https://go.dev/dl/)
+* Run bot with `go run` command
 
-## Running tests
+```bash
+go run ./cmd/hammy/
+```
+## Running tests (local)
+```bash
+go test ./... -v
+```
