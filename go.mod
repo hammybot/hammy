@@ -1,16 +1,16 @@
 module github.com/austinvalle/hammy
 
-go 1.17
+go 1.19
 
 require (
-	github.com/bwmarrin/discordgo v0.23.2
-	github.com/rs/zerolog v1.27.0
+	github.com/bwmarrin/discordgo v0.26.1
+	github.com/rs/zerolog v1.28.0
 )
 
 require (
-	github.com/gorilla/websocket v1.4.0 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
+	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
+	golang.org/x/sys v0.0.0-20220913120320-3275c407cedc // indirect
 )
