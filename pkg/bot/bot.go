@@ -43,6 +43,7 @@ func RunBot(session *discordgo.Session) error {
 
 func registerBotCommands(s *discordgo.Session) {
 	safeRegister(s, ping, pingName, pingDescription)
+	go listGlobalCommands(s)
 }
 
 func safeRegister(s *discordgo.Session, handler InteractionHandler, interactionName string, interactionDesc string) {
@@ -100,5 +101,19 @@ func getUserFromInteraction(event *discordgo.InteractionCreate) *discordgo.User 
 			ID:       "unknown",
 			Username: "unknown",
 		}
+	}
+}
+
+func listGlobalCommands(s *discordgo.Session) {
+	cmds, err := s.ApplicationCommands(s.State.User.ID, "")
+	if err != nil {
+		log.Warn().
+			Err(fmt.Errorf("couldn't list global commands - %w", err)).
+			Msg("")
+		return
+	}
+
+	for _, cmd := range cmds {
+		log.Info().Str("command.name", cmd.Name).Msg("globally registered")
 	}
 }
