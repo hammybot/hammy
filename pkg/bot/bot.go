@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"regexp"
+	"runtime"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-type MessageCreateHandler func(s *discordgo.Session, m *discordgo.MessageCreate)
+type messageContext struct {
+	session *discordgo.Session
+	msg     *discordgo.Message
+	logger  zerolog.Logger
+}
+
+type MessageCreateHandler func(messageContext) error
 
 func RunBot(session *discordgo.Session) error {
 	err := session.Open()
@@ -33,7 +42,6 @@ func RunBot(session *discordgo.Session) error {
 }
 
 func registerBotCommands(s *discordgo.Session) {
-	// Ping Pong & version!
 	safeRegister(s, ping, pingRegex)
 }
 
@@ -60,7 +68,27 @@ func readNewUserMessage(handler MessageCreateHandler, match string) (func(s *dis
 		}
 
 		if regex.MatchString(m.Content) {
-			handler(s, m)
+			logger := createLogger(handler, m)
+			logger.Debug().Msg("invoking handler")
+
+			err := handler(messageContext{
+				session: s,
+				msg:     m.Message,
+				logger:  logger,
+			})
+			if err != nil {
+				logger.Error().Err(err).Msg("")
+			}
 		}
 	}, nil
+}
+
+func createLogger(handler any, m *discordgo.MessageCreate) zerolog.Logger {
+	functionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+	return log.With().
+		Str("author.id", m.Author.ID).
+		Str("author.username", m.Author.Username).
+		Str("channelID", m.ChannelID).
+		Str("handler", functionName).
+		Logger()
 }

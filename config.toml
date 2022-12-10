@@ -1,2 +1,0 @@
-# Valid values: DEBUG, INFO, ERROR
-log_level = "DEBUG"

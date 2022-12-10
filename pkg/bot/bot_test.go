@@ -10,8 +10,9 @@ type handlerSpy struct {
 	called bool
 }
 
-func (h *handlerSpy) handler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (h *handlerSpy) handler(ctx messageContext) error {
 	h.called = true
+	return nil
 }
 
 func TestReadNewUserMessage(t *testing.T) {

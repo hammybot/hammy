@@ -12,25 +12,14 @@ import (
 const botTokenEnv = "DISCORD_BOT_TOKEN"
 
 func main() {
-	err := realMain()
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		os.Exit(1)
-	}
-}
-
-func realMain() error {
 	botSession, err := createDiscordSession()
 	if err != nil {
-		return fmt.Errorf("failed creating discord client: %v", err)
+		log.Fatal().Err(fmt.Errorf("failed creating discord client: %v", err)).Msg("")
 	}
 
-	err = bot.RunBot(botSession)
-	if err != nil {
-		return fmt.Errorf("failed running bot: %v", err)
+	if err := bot.RunBot(botSession); err != nil {
+		log.Fatal().Err(fmt.Errorf("failed running bot: %v", err)).Msg("")
 	}
-
-	return nil
 }
 
 func createDiscordSession() (*discordgo.Session, error) {
@@ -39,5 +28,11 @@ func createDiscordSession() (*discordgo.Session, error) {
 		return nil, fmt.Errorf("'%s' environment variable not found", botTokenEnv)
 	}
 
-	return discordgo.New(fmt.Sprintf("Bot %v", botToken))
+	session, err := discordgo.New(fmt.Sprintf("Bot %v", botToken))
+	if err != nil {
+		return nil, err
+	}
+
+	session.LogLevel = discordgo.LogWarning
+	return session, nil
 }
