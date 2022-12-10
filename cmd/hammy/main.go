@@ -14,11 +14,11 @@ const botTokenEnv = "DISCORD_BOT_TOKEN"
 func main() {
 	botSession, err := createDiscordSession()
 	if err != nil {
-		log.Fatal().Err(fmt.Errorf("failed creating discord client: %v", err)).Msg("")
+		log.Fatal().Err(fmt.Errorf("failed creating discord client: %w", err)).Msg("")
 	}
 
 	if err := bot.RunBot(botSession); err != nil {
-		log.Fatal().Err(fmt.Errorf("failed running bot: %v", err)).Msg("")
+		log.Fatal().Err(fmt.Errorf("failed running bot: %w", err)).Msg("")
 	}
 }
 
