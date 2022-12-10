@@ -1,9 +1,9 @@
 package bot
 
-import "github.com/bwmarrin/discordgo"
+const pingRegex = `^!ping$`
 
-const pingRegex = "^!ping$"
+func ping(ctx messageContext) error {
+	_, err := ctx.session.ChannelMessageSend(ctx.msg.ChannelID, "Pong! :ping_pong:")
 
-func ping(s *discordgo.Session, m *discordgo.MessageCreate) {
-	s.ChannelMessageSend(m.ChannelID, "Pong! :ping_pong:")
+	return err
 }
