@@ -2,8 +2,6 @@ name: Publish hammy image
 
 on:
   push:
-    branches:
-      - 'master'
     tags:
       - 'v*'
 
