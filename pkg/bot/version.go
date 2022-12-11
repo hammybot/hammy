@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/debug"
-	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -17,18 +16,13 @@ const (
 	hammyLogoUrl = "https://raw.githubusercontent.com/austinvalle/hammy/main/assets/hammy-viking.png"
 )
 
-// Overriden by build flags/binary info
 var vcsShortSha = ""
 var vcsSha = ""
-var vcsModified = false
 
 func init() {
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, s := range info.Settings {
-			switch s.Key {
-			case "vcs.modified":
-				vcsModified, _ = strconv.ParseBool(s.Value)
-			case "vcs.revision":
+			if s.Key == "vcs.revision" {
 				vcsSha = s.Value
 				vcsShortSha = s.Value[:7]
 			}
@@ -59,9 +53,6 @@ func version(ctx botContext, event *discordgo.InteractionCreate) error {
 
 func getVcsInfo() *discordgo.MessageEmbedField {
 	commitMsg := fmt.Sprintf(refUrl, vcsShortSha, vcsSha)
-	if vcsModified {
-		commitMsg = ":construction: _local changes_ :construction:"
-	}
 
 	return &discordgo.MessageEmbedField{
 		Name:  "Commit",
