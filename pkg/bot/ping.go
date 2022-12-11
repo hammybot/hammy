@@ -25,7 +25,7 @@ func ping(ctx botContext, event *discordgo.InteractionCreate) error {
 		return err
 	}
 	_, err = ctx.session.FollowupMessageCreate(event.Interaction, true, &discordgo.WebhookParams{
-		Content: fmt.Sprintf(":ping_pong: `%dms`", elapsed.Milliseconds()),
+		Content: fmt.Sprintf("Pong! :ping_pong: `%dms`", elapsed.Milliseconds()),
 		Flags:   discordgo.MessageFlagsEphemeral,
 	})
 
