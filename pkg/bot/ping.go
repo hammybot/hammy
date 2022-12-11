@@ -1,18 +1,33 @@
 package bot
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"fmt"
+	"time"
 
-const (
-	pingName        = `ping`
-	pingDescription = `Send a ping to hammy`
+	"github.com/bwmarrin/discordgo"
 )
 
-func ping(ctx messageContext) error {
-	return ctx.session.InteractionRespond(ctx.event.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
+const (
+	pingName        = "ping"
+	pingDescription = "Send a ping to hammy"
+)
+
+func ping(ctx botContext, event *discordgo.InteractionCreate) error {
+	start := time.Now()
+	err := ctx.session.InteractionRespond(event.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Flags:   discordgo.MessageFlagsEphemeral,
-			Content: "Ayo! It's your boy",
+			Flags: discordgo.MessageFlagsEphemeral,
 		},
 	})
+	elapsed := time.Since(start)
+	if err != nil {
+		return err
+	}
+	_, err = ctx.session.FollowupMessageCreate(event.Interaction, true, &discordgo.WebhookParams{
+		Content: fmt.Sprintf(":ping_pong: `%dms`", elapsed.Milliseconds()),
+		Flags:   discordgo.MessageFlagsEphemeral,
+	})
+
+	return err
 }
