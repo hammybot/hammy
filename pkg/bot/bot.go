@@ -42,6 +42,8 @@ func RunBot(session *discordgo.Session) error {
 
 func registerBotCommands(s *discordgo.Session) {
 	safeRegister(s, ping, pingName, pingDescription)
+	safeRegister(s, version, versionName, versionDescription)
+
 	go listGlobalCommands(s)
 }
 
