@@ -13,7 +13,3 @@ Utility bot built for Discord w/ Golang and [discordgo](https://github.com/bwmar
 ```bash
 go run ./cmd/hammy/
 ```
-## Running tests (local)
-```bash
-go test ./... -v
-```
