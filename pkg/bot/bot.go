@@ -13,13 +13,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type messageContext struct {
+type botContext struct {
 	session *discordgo.Session
-	event   *discordgo.InteractionCreate
 	logger  zerolog.Logger
 }
 
-type InteractionHandler func(messageContext) error
+type InteractionHandler func(botContext, *discordgo.InteractionCreate) error
 
 func RunBot(session *discordgo.Session) error {
 	err := session.Open()
@@ -66,11 +65,7 @@ func createInteractionHandler(handler InteractionHandler, slashName string) func
 			logger := createLogger(handler, event)
 			logger.Debug().Msg("invoking handler")
 
-			err := handler(messageContext{
-				session: s,
-				event:   event,
-				logger:  logger,
-			})
+			err := handler(botContext{session: s, logger: logger}, event)
 			if err != nil {
 				logger.Error().Err(err).Msg("")
 			}
