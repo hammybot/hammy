@@ -15,12 +15,8 @@ type InteractionCreate interface {
 	Run(*slog.Logger, *discordgo.Session, *discordgo.InteractionCreate) error
 }
 
+// RegisterInteractionCreate registers the command to be called during an interaction create event
 func RegisterInteractionCreate(l *slog.Logger, s *discordgo.Session, command InteractionCreate) {
-	err := CreateGlobalCommand(s, command)
-	if err != nil {
-		l.Warn("unable to register command", "err", err, "command.name", command.Name())
-	}
-
 	s.AddHandler(func(s *discordgo.Session, event *discordgo.InteractionCreate) {
 		if command.Name() == event.ApplicationCommandData().Name {
 			user := getUserFromInteraction(l, event)

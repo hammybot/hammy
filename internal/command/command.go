@@ -16,23 +16,22 @@ type Command interface {
 	Description() string
 }
 
-func CreateGlobalCommand(s *discordgo.Session, c Command) error {
-	_, err := s.ApplicationCommandCreate(s.State.User.ID, "", &discordgo.ApplicationCommand{
+// RegisterGuildCommand creates a guild level application command when a guild create event is dispatched.
+// The underlying API call is an upsert and safe to call multiple times.
+func RegisterGuildCommand(l *slog.Logger, s *discordgo.Session, c Command) {
+	s.AddHandler(func(s *discordgo.Session, event *discordgo.GuildCreate) {
+		err := createGuildCommand(s, c, event.Guild)
+		if err != nil {
+			l.Warn("unable to register command", "err", err, "command.name", c.Name())
+		}
+	})
+}
+
+func createGuildCommand(s *discordgo.Session, c Command, guild *discordgo.Guild) error {
+	_, err := s.ApplicationCommandCreate(s.State.User.ID, guild.ID, &discordgo.ApplicationCommand{
 		Name:        c.Name(),
 		Description: c.Description(),
 	})
 
 	return err
-}
-
-func LogGlobalCommands(l *slog.Logger, s *discordgo.Session) {
-	cmds, err := s.ApplicationCommands(s.State.User.ID, "")
-	if err != nil {
-		l.Warn("couldn't list global commands", "err", err)
-		return
-	}
-
-	for _, cmd := range cmds {
-		l.Info("command registered globally", "command.name", cmd.Name)
-	}
 }

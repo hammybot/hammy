@@ -33,9 +33,10 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 }
 
 func registerBotCommands(l *slog.Logger, s *discordgo.Session) {
-	command.RegisterInteractionCreate(l, s, newPingCommand())
+	ping := newPingCommand()
 
-	go command.LogGlobalCommands(l, s)
+	command.RegisterGuildCommand(l, s, ping)
+	command.RegisterInteractionCreate(l, s, ping)
 }
 
 func createBotLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
