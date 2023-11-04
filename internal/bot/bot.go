@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"reflect"
-	"runtime"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -24,7 +22,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)
 	}
 
-	logger := createRootLogger(l, session)
+	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected...")
 
 	registerBotCommands(logger, session)
@@ -61,48 +59,13 @@ func safeRegister(l *slog.Logger, s *discordgo.Session, handler InteractionHandl
 func createInteractionHandler(l *slog.Logger, handler InteractionHandler, slashName string) func(s *discordgo.Session, event *discordgo.InteractionCreate) {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) {
 		if slashName == event.ApplicationCommandData().Name {
-			logger := createLogger(l, handler, event)
+			logger := createInteractionLogger(l, handler, event)
 
 			logger.Debug("invoking handler")
 			err := handler(botContext{session: s, logger: logger}, event)
 			if err != nil {
 				logger.Error("error invoking handler", "err", err)
 			}
-		}
-	}
-}
-
-func createRootLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
-	if session.State != nil && session.State.Ready.User != nil {
-		logger = logger.With("bot_username", session.State.Ready.User.Username)
-	}
-
-	return logger
-}
-
-func createLogger(l *slog.Logger, handler any, event *discordgo.InteractionCreate) *slog.Logger {
-	functionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
-
-	user := getUserFromInteraction(l, event)
-	return l.With(
-		"command.name", event.ApplicationCommandData().Name,
-		"user.id", user.ID,
-		"user.username", user.Username,
-		"event.channelId", event.ChannelID,
-		"handler", functionName,
-	)
-}
-
-func getUserFromInteraction(l *slog.Logger, event *discordgo.InteractionCreate) *discordgo.User {
-	if event.Member != nil {
-		return event.Member.User
-	} else if event.User != nil {
-		return event.User
-	} else {
-		l.Warn("couldn't extract user info from interaction")
-		return &discordgo.User{
-			ID:       "unknown",
-			Username: "unknown",
 		}
 	}
 }

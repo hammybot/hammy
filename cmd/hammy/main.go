@@ -15,22 +15,8 @@ const botTokenEnv = "DISCORD_BOT_TOKEN"
 func main() {
 	// TODO: should probably accept log level via input (env variable or flag)
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelWarn,
+		Level: slog.LevelDebug,
 	}))
-
-	// Capture discordgo logs: https://github.com/bwmarrin/discordgo/issues/650#issuecomment-496605060
-	discordgo.Logger = func(msgL, caller int, format string, a ...interface{}) {
-		switch msgL {
-		case discordgo.LogError:
-			rootLogger.Error(fmt.Sprintf(format, a...))
-		case discordgo.LogWarning:
-			rootLogger.Warn(fmt.Sprintf(format, a...))
-		case discordgo.LogInformational:
-			rootLogger.Info(fmt.Sprintf(format, a...))
-		default:
-			rootLogger.Debug(fmt.Sprintf(format, a...))
-		}
-	}
 
 	botSession, err := createDiscordSession()
 	if err != nil {
@@ -39,13 +25,15 @@ func main() {
 	}
 
 	info := getBinaryInfo()
-	logger := rootLogger.With(
+	rootLogger.Info(
+		"hammy started",
 		"version", info.Version,
-		"commit_sha", info.Commit,
-		"os_target", fmt.Sprintf("`%s/%s`", runtime.GOOS, runtime.GOARCH),
+		"commit", info.Commit,
+		"go_os", runtime.GOOS,
+		"go_arch", runtime.GOARCH,
 	)
 
-	if err := bot.RunBot(logger, botSession); err != nil {
+	if err := bot.RunBot(rootLogger, botSession); err != nil {
 		rootLogger.Error("fatal error starting bot", "err", err)
 		os.Exit(1)
 	}
