@@ -6,15 +6,9 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/austinvalle/hammy/internal/command"
 	"github.com/bwmarrin/discordgo"
 )
-
-type botContext struct {
-	session *discordgo.Session
-	logger  *slog.Logger
-}
-
-type InteractionHandler func(botContext, *discordgo.InteractionCreate) error
 
 func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	err := session.Open()
@@ -39,45 +33,15 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 }
 
 func registerBotCommands(l *slog.Logger, s *discordgo.Session) {
-	safeRegister(l, s, ping, pingName, pingDescription)
+	command.RegisterInteractionCreate(l, s, newPingCommand())
 
-	go listGlobalCommands(l, s)
+	go command.LogGlobalCommands(l, s)
 }
 
-func safeRegister(l *slog.Logger, s *discordgo.Session, handler InteractionHandler, interactionName string, interactionDesc string) {
-	_, err := s.ApplicationCommandCreate(s.State.User.ID, "", &discordgo.ApplicationCommand{
-		Name:        interactionName,
-		Description: interactionDesc,
-	})
-	if err != nil {
-		l.Warn("unable to register command", "err", err, "command.name", interactionName)
+func createBotLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
+	if session.State != nil && session.State.Ready.User != nil {
+		logger = logger.With("bot_username", session.State.Ready.User.Username)
 	}
 
-	s.AddHandler(createInteractionHandler(l, handler, interactionName))
-}
-
-func createInteractionHandler(l *slog.Logger, handler InteractionHandler, slashName string) func(s *discordgo.Session, event *discordgo.InteractionCreate) {
-	return func(s *discordgo.Session, event *discordgo.InteractionCreate) {
-		if slashName == event.ApplicationCommandData().Name {
-			logger := createInteractionLogger(l, handler, event)
-
-			logger.Debug("invoking handler")
-			err := handler(botContext{session: s, logger: logger}, event)
-			if err != nil {
-				logger.Error("error invoking handler", "err", err)
-			}
-		}
-	}
-}
-
-func listGlobalCommands(l *slog.Logger, s *discordgo.Session) {
-	cmds, err := s.ApplicationCommands(s.State.User.ID, "")
-	if err != nil {
-		l.Warn("couldn't list global commands", "err", err)
-		return
-	}
-
-	for _, cmd := range cmds {
-		l.Info("command registered globally", "command.name", cmd.Name)
-	}
+	return logger
 }

@@ -2,19 +2,30 @@ package bot
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/austinvalle/hammy/internal/command"
 	"github.com/bwmarrin/discordgo"
 )
 
-const (
-	pingName        = "ping"
-	pingDescription = "Send a ping to hammy"
-)
+type pingCommand struct{}
 
-func ping(ctx botContext, event *discordgo.InteractionCreate) error {
+func newPingCommand() command.InteractionCreate {
+	return &pingCommand{}
+}
+
+func (c *pingCommand) Name() string {
+	return "ping"
+}
+
+func (c *pingCommand) Description() string {
+	return "Send a ping to hammy"
+}
+
+func (c *pingCommand) Run(logger *slog.Logger, session *discordgo.Session, event *discordgo.InteractionCreate) error {
 	start := time.Now()
-	err := ctx.session.InteractionRespond(event.Interaction, &discordgo.InteractionResponse{
+	err := session.InteractionRespond(event.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
@@ -24,7 +35,7 @@ func ping(ctx botContext, event *discordgo.InteractionCreate) error {
 	if err != nil {
 		return err
 	}
-	_, err = ctx.session.FollowupMessageCreate(event.Interaction, true, &discordgo.WebhookParams{
+	_, err = session.FollowupMessageCreate(event.Interaction, true, &discordgo.WebhookParams{
 		Content: fmt.Sprintf("Pong! :ping_pong: `%dms`", elapsed.Milliseconds()),
 	})
 
