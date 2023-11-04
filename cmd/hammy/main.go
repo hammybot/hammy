@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/austinvalle/hammy/pkg/bot"
+	"github.com/austinvalle/hammy/internal/bot"
 	"github.com/bwmarrin/discordgo"
 )
 
