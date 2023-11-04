@@ -9,6 +9,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// pingCommand responds to a /ping command with a message and then edits the message to loosely display latency
 type pingCommand struct{}
 
 func newPingCommand() command.InteractionCreate {
