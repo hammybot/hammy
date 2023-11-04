@@ -1,33 +1,33 @@
 package bot
 
 import (
-	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"reflect"
 	"runtime"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type botContext struct {
 	session *discordgo.Session
-	logger  zerolog.Logger
+	logger  *slog.Logger
 }
 
 type InteractionHandler func(botContext, *discordgo.InteractionCreate) error
 
-func RunBot(session *discordgo.Session) error {
+func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	err := session.Open()
 	if err != nil {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)
 	}
-	log.Print("hammy is up and running...")
 
-	registerBotCommands(session)
+	logger := createRootLogger(l, session)
+	logger.Info("bot successfully connected...")
+
+	registerBotCommands(logger, session)
 
 	defer session.Close()
 
@@ -35,65 +35,71 @@ func RunBot(session *discordgo.Session) error {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 
-	log.Print("hammy is shutting down...")
+	logger.Info("bot shutting down...")
 
 	return nil
 }
 
-func registerBotCommands(s *discordgo.Session) {
-	safeRegister(s, ping, pingName, pingDescription)
-	safeRegister(s, version, versionName, versionDescription)
+func registerBotCommands(l *slog.Logger, s *discordgo.Session) {
+	safeRegister(l, s, ping, pingName, pingDescription)
 
-	go listGlobalCommands(s)
+	go listGlobalCommands(l, s)
 }
 
-func safeRegister(s *discordgo.Session, handler InteractionHandler, interactionName string, interactionDesc string) {
+func safeRegister(l *slog.Logger, s *discordgo.Session, handler InteractionHandler, interactionName string, interactionDesc string) {
 	_, err := s.ApplicationCommandCreate(s.State.User.ID, "", &discordgo.ApplicationCommand{
 		Name:        interactionName,
 		Description: interactionDesc,
 	})
 	if err != nil {
-		log.Warn().
-			Err(fmt.Errorf("unable to register command: '%s' - %w", interactionName, err)).
-			Msg("")
+		l.Warn("unable to register command", "err", err, "command.name", interactionName)
 	}
 
-	s.AddHandler(createInteractionHandler(handler, interactionName))
+	s.AddHandler(createInteractionHandler(l, handler, interactionName))
 }
 
-func createInteractionHandler(handler InteractionHandler, slashName string) func(s *discordgo.Session, event *discordgo.InteractionCreate) {
+func createInteractionHandler(l *slog.Logger, handler InteractionHandler, slashName string) func(s *discordgo.Session, event *discordgo.InteractionCreate) {
 	return func(s *discordgo.Session, event *discordgo.InteractionCreate) {
 		if slashName == event.ApplicationCommandData().Name {
-			logger := createLogger(handler, event)
-			logger.Debug().Msg("invoking handler")
+			logger := createLogger(l, handler, event)
 
+			logger.Debug("invoking handler")
 			err := handler(botContext{session: s, logger: logger}, event)
 			if err != nil {
-				logger.Error().Err(err).Msg("")
+				logger.Error("error invoking handler", "err", err)
 			}
 		}
 	}
 }
 
-func createLogger(handler any, event *discordgo.InteractionCreate) zerolog.Logger {
-	functionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+func createRootLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
+	if session.State != nil && session.State.Ready.User != nil {
+		logger = logger.With("bot_username", session.State.Ready.User.Username)
+	}
 
-	user := getUserFromInteraction(event)
-	return log.With().
-		Str("user.id", user.ID).
-		Str("user.username", user.Username).
-		Str("channelID", event.ChannelID).
-		Str("handler", functionName).
-		Logger()
+	return logger
 }
 
-func getUserFromInteraction(event *discordgo.InteractionCreate) *discordgo.User {
+func createLogger(l *slog.Logger, handler any, event *discordgo.InteractionCreate) *slog.Logger {
+	functionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+
+	user := getUserFromInteraction(l, event)
+	return l.With(
+		"command.name", event.ApplicationCommandData().Name,
+		"user.id", user.ID,
+		"user.username", user.Username,
+		"event.channelId", event.ChannelID,
+		"handler", functionName,
+	)
+}
+
+func getUserFromInteraction(l *slog.Logger, event *discordgo.InteractionCreate) *discordgo.User {
 	if event.Member != nil {
 		return event.Member.User
 	} else if event.User != nil {
 		return event.User
 	} else {
-		log.Warn().Err(errors.New("couldn't extract user info from interaction")).Msg("")
+		l.Warn("couldn't extract user info from interaction")
 		return &discordgo.User{
 			ID:       "unknown",
 			Username: "unknown",
@@ -101,16 +107,14 @@ func getUserFromInteraction(event *discordgo.InteractionCreate) *discordgo.User 
 	}
 }
 
-func listGlobalCommands(s *discordgo.Session) {
+func listGlobalCommands(l *slog.Logger, s *discordgo.Session) {
 	cmds, err := s.ApplicationCommands(s.State.User.ID, "")
 	if err != nil {
-		log.Warn().
-			Err(fmt.Errorf("couldn't list global commands - %w", err)).
-			Msg("")
+		l.Warn("couldn't list global commands", "err", err)
 		return
 	}
 
 	for _, cmd := range cmds {
-		log.Info().Str("command.name", cmd.Name).Msg("globally registered")
+		l.Info("command registered globally", "command.name", cmd.Name)
 	}
 }
