@@ -16,12 +16,6 @@ type Command interface {
 	Description() string
 }
 
-type TextCommand interface {
-	Name() string
-	Pattern() string
-	Handler(*slog.Logger, *discordgo.Session, *discordgo.MessageCreate) error
-}
-
 type MessageHandler func(l *slog.Logger, s *discordgo.Session, m *discordgo.MessageCreate) error
 
 // RegisterGuildCommand creates a guild level application command when a guild create event is dispatched.
