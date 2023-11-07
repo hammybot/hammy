@@ -8,11 +8,23 @@ import (
 
 	"github.com/austinvalle/hammy/internal/bot"
 	"github.com/bwmarrin/discordgo"
+	"github.com/spf13/viper"
 )
 
 const botTokenEnv = "DISCORD_BOT_TOKEN"
 
+func init() {
+	viper.SetDefault("LogLevel", discordgo.LogWarning)
+
+	//todo: this will require env file and we should fix that so it isnt always the case
+	viper.SetConfigFile(".env")
+}
 func main() {
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+
 	// TODO: should probably accept log level via input (env variable or flag)
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
@@ -40,18 +52,19 @@ func main() {
 }
 
 func createDiscordSession() (*discordgo.Session, error) {
-	botToken, ok := os.LookupEnv(botTokenEnv)
-	if !ok {
+	if !viper.IsSet(botTokenEnv) {
 		return nil, fmt.Errorf("%s environment variable not found", botTokenEnv)
 	}
 
-	session, err := discordgo.New(fmt.Sprintf("Bot %s", botToken))
+	session, err := discordgo.New(fmt.Sprintf("Bot %s", viper.GetString(botTokenEnv)))
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: should probably accept log level via input (env variable or flag)
-	session.LogLevel = discordgo.LogWarning
+	ll := viper.GetInt("LogLevel")
+
+	//todo: use flags with viper
+	session.LogLevel = ll
 	session.Identify.Intents = discordgo.IntentGuildMessages
 
 	return session, nil
