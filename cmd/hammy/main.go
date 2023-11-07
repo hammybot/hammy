@@ -52,6 +52,7 @@ func createDiscordSession() (*discordgo.Session, error) {
 
 	// TODO: should probably accept log level via input (env variable or flag)
 	session.LogLevel = discordgo.LogWarning
+	session.Identify.Intents = discordgo.IntentGuildMessages
 
 	return session, nil
 }
