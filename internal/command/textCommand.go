@@ -12,7 +12,8 @@ type DiscordChannelRetriever interface {
 }
 
 type TextCommand interface {
-	Name() string
+	Command
+
 	Handler(*discordgo.Session, *discordgo.MessageCreate) error
 	CanActivate(DiscordChannelRetriever, discordgo.Message) bool
 }

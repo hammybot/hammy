@@ -40,7 +40,11 @@ func newWatoCommand(l *slog.Logger) *watoCommand {
 }
 
 func (h *watoCommand) Name() string {
-	return "WATO"
+	return "wato"
+}
+
+func (h *watoCommand) Description() string {
+	return "dunk on your friends with a game of chance"
 }
 
 // Determines if the current message applies for the command
@@ -87,7 +91,7 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 		//get the guess from the user
 		//find the right challenge and update
 		//if challenge is ready, send answer
-	} else {
+	} else if len(m.Mentions) == 1 {
 		//check that neither user is already in a challenge
 		//start new challenge
 		challenge := &watoChallenge{
@@ -96,7 +100,7 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 			Status:       PendingAccept,
 			Description:  "todo",
 		}
-		fmt.Println(challenge)
+		h.logger.Info(fmt.Sprintf("%v", challenge))
 	}
 
 	// channel.Type
