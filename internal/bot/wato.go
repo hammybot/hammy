@@ -90,13 +90,13 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 	} else {
 		//check that neither user is already in a challenge
 		//start new challenge
-			challenge = &watoChallenge{
-				ChallengerId: m.Author.ID,
-				ChallengedId: m.Mentions[0].ID,
-			Status: PendingAccept,
-				Description: ,
-			
-			}
+		challenge := &watoChallenge{
+			ChallengerId: m.Author.ID,
+			ChallengedId: m.Mentions[0].ID,
+			Status:       PendingAccept,
+			Description:  "todo",
+		}
+		fmt.Println(challenge)
 	}
 
 	// channel.Type
@@ -111,9 +111,9 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 	return nil
 }
 
-func removeMention(description string) string {
-	
-}
+// func removeMention(description string) string {
+
+// }
 
 // todo: this isnt really saving much
 func getChannelType(s command.DiscordChannelRetriever, id string) (discordgo.ChannelType, error) {

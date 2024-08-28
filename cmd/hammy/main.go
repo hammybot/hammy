@@ -5,31 +5,20 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"strconv"
 
 	"github.com/austinvalle/hammy/internal/bot"
 	"github.com/bwmarrin/discordgo"
-	"github.com/spf13/viper"
 )
 
-const botTokenEnv = "DISCORD_BOT_TOKEN"
+const (
+	botTokenEnv          = "DISCORD_BOT_TOKEN"
+	hammyLogLevelEnv     = "HAMMY_LOG_LEVEL"
+	discordgoLogLevelEnv = "DISCORDGO_LOG_LEVEL"
+)
 
-func init() {
-	viper.SetDefault("LogLevel", discordgo.LogWarning)
-
-	//todo: this will require env file and we should fix that so it isnt always the case
-	viper.SetConfigFile(".env")
-}
 func main() {
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-
-	// TODO: should probably accept log level via input (env variable or flag)
-	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
-
+	rootLogger := rootLogger()
 	botSession, err := createDiscordSession()
 	if err != nil {
 		rootLogger.Error("fatal error creating discord client", "err", err)
@@ -52,20 +41,36 @@ func main() {
 }
 
 func createDiscordSession() (*discordgo.Session, error) {
-	if !viper.IsSet(botTokenEnv) {
+	botToken, ok := os.LookupEnv(botTokenEnv)
+	if !ok {
 		return nil, fmt.Errorf("%s environment variable not found", botTokenEnv)
 	}
 
-	session, err := discordgo.New(fmt.Sprintf("Bot %s", viper.GetString(botTokenEnv)))
+	session, err := discordgo.New(fmt.Sprintf("Bot %s", botToken))
 	if err != nil {
 		return nil, err
 	}
 
-	ll := viper.GetInt("LogLevel")
+	discordgoLogLevel := discordgo.LogWarning
+	if levelInt, err := strconv.Atoi(os.Getenv(discordgoLogLevelEnv)); err == nil {
+		discordgoLogLevel = levelInt
+	}
 
-	//todo: use flags with viper
-	session.LogLevel = ll
+	session.LogLevel = discordgoLogLevel
 	session.Identify.Intents = discordgo.IntentGuildMessages
 
 	return session, nil
+}
+
+func rootLogger() *slog.Logger {
+	hammyLogLevel := slog.LevelInfo
+	if levelInt, err := strconv.Atoi(os.Getenv(hammyLogLevelEnv)); err == nil {
+		hammyLogLevel = slog.Level(levelInt)
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: hammyLogLevel,
+	}))
+
+	return logger
 }
