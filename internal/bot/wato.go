@@ -1,12 +1,14 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"regexp"
 	"strconv"
 
 	"github.com/austinvalle/hammy/internal/command"
+	"github.com/austinvalle/hammy/internal/models"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -21,21 +23,31 @@ const (
 
 const Pattern = "^what are the odds .*"
 
+type WatoReader interface {
+}
+
+type WatoWriter interface {
+	CreateNewChallenge(*models.WatoChallenge) error
+	RetrieveChallenge(string) (*models.WatoChallenge, error)
+	GetChallengeForUser(string) (*models.WatoChallenge, error)
+	HasActiveChallenge([]string) bool
+}
+
+type WatoReaderWriter interface {
+	WatoReader
+	WatoWriter
+}
+
 type CommandHandler = func(s *discordgo.Session, m *discordgo.MessageCreate) error
 type watoCommand struct {
 	logger *slog.Logger
-}
-type watoChallenge struct {
-	ChallengerId string
-	ChallengedId string
-	ChannelId    string
-	Description  string
-	Status       string
+	db     WatoReaderWriter
 }
 
-func newWatoCommand(l *slog.Logger) *watoCommand {
+func newWatoCommand(l *slog.Logger, db WatoReaderWriter) *watoCommand {
 	return &watoCommand{
 		logger: l,
+		db:     db,
 	}
 }
 
@@ -77,6 +89,8 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 	h.logger.Debug("received wato challenge", "content", m.Content)
 
 	channelType, err := getChannelType(s, m.ChannelID)
+	mentioned := m.Mentions[0]
+	author := m.Author
 
 	if err != nil {
 		h.logger.Error("could not get channel type", "channel_id", m.ChannelID)
@@ -90,29 +104,48 @@ func (h *watoCommand) Handler(s *discordgo.Session, m *discordgo.MessageCreate) 
 	} else {
 		//check that neither user is already in a challenge
 		//start new challenge
-			challenge = &watoChallenge{
-				ChallengerId: m.Author.ID,
-				ChallengedId: m.Mentions[0].ID,
-			Status: PendingAccept,
-				Description: ,
-			
-			}
+
+		if h.db.HasActiveChallenge([]string{author.ID, mentioned.ID}) {
+			h.logger.Info("active challenge already active for user")
+			//todo: change this so we can figure out who is already in the challenge for the response
+		}
+
+		d, err := removeMention(m.Content)
+
+		if err != nil {
+			h.logger.Error("could not create new challenge")
+			return err
+		}
+
+		c := &models.WatoChallenge{
+			ChallengerId: author.ID,
+			ChallengedId: mentioned.ID,
+			Status:       PendingAccept,
+			Description:  d,
+		}
+		if err := h.db.CreateNewChallenge(c); err != nil {
+			return err
+		}
+
+		msg := fmt.Sprintf("%s has challenged %s to a game of odds!", author.Username, mentioned.Username)
+
+		s.ChannelMessageSend(m.ChannelID, msg, discordgo.WithContext(context.TODO()))
+		//post in channel
+		//message each user for their answer
+		//add to db
+		//show result in channel
+
 	}
-
-	// channel.Type
-	// setup challenge obj
-	//add to db
-	//post in channel
-
-	//message each user for their answer
-	//add to db
-	//show result in channel
 
 	return nil
 }
 
-func removeMention(description string) string {
-	
+func removeMention(description string) (string, error) {
+	r, err := regexp.Compile(`@[\w\d_]*[,]{0,1} {0,1}`)
+	if err != nil {
+		return "", fmt.Errorf("error compiling regex for mention")
+	}
+	return r.ReplaceAllString(description, ""), nil
 }
 
 // todo: this isnt really saving much

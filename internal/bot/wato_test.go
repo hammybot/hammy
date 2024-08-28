@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/austinvalle/hammy/internal/models"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,14 +14,18 @@ const (
 	PUBLIC_CHANNEL_ID = "2"
 )
 
-type testSession struct {
-}
+type testSession struct{}
+type mockDb struct{}
 
 func (s *testSession) Channel(id string, opts ...discordgo.RequestOption) (*discordgo.Channel, error) {
 	if id == DM_CHANNEL_ID {
 		return &discordgo.Channel{Type: discordgo.ChannelTypeDM}, nil
 	}
 	return &discordgo.Channel{Type: discordgo.ChannelTypeGuildText}, nil
+}
+
+func (db *mockDb) CreateNewChallenge(c *models.WatoChallenge) error {
+	return nil
 }
 
 func TestWatoCanActivate(t *testing.T) {
@@ -31,9 +36,10 @@ func TestWatoCanActivate(t *testing.T) {
 		MockLogger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
 		}))
+		MockDb = &mockDb{}
 	)
 
-	challenge := newWatoCommand(MockLogger)
+	challenge := newWatoCommand(MockLogger, MockDb)
 
 	var tests = []struct {
 		name string

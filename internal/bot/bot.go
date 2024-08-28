@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/austinvalle/hammy/internal"
 	"github.com/austinvalle/hammy/internal/command"
 	"github.com/bwmarrin/discordgo"
 )
@@ -19,7 +20,8 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected...")
 
-	registerBotCommands(logger, session)
+	db, err := internal.CreateNewPostgres()
+	registerBotCommands(logger, db, session)
 
 	defer session.Close()
 
@@ -32,9 +34,9 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	return nil
 }
 
-func registerBotCommands(l *slog.Logger, s *discordgo.Session) {
+func registerBotCommands(l *slog.Logger, p *internal.Postgres, s *discordgo.Session) {
 	ping := newPingCommand()
-	wato := newWatoCommand(l)
+	wato := newWatoCommand(l, p)
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
 
