@@ -17,7 +17,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	}
 
 	logger := createBotLogger(l, session)
-	logger.Info("bot successfully connected...")
+	logger.Info("bot successfully connected")
 
 	registerBotCommands(logger, session)
 
@@ -27,7 +27,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 
-	logger.Info("bot shutting down...")
+	logger.Info("bot shutting down")
 
 	return nil
 }

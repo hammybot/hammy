@@ -15,7 +15,7 @@ const botTokenEnv = "DISCORD_BOT_TOKEN"
 func main() {
 	// TODO: should probably accept log level via input (env variable or flag)
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: slog.LevelInfo,
 	}))
 
 	botSession, err := createDiscordSession()
