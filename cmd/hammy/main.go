@@ -15,12 +15,14 @@ const botTokenEnv = "DISCORD_BOT_TOKEN"
 
 func init() {
 	viper.SetDefault("ResponseEmoji", "\U0001F914")
+	viper.SetDefault("DISCORD_LOG_LEVEL", discordgo.LogWarning)
+	viper.SetDefault("LOG_LEVEL", slog.LevelDebug)
 	viper.AutomaticEnv()
 }
 func main() {
-	// TODO: should probably accept log level via input (env variable or flag)
+	//todo: we should unmarshal viper into a config object and use that
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: slog.Level(viper.GetInt("LOG_LEVEL")),
 	}))
 
 	botSession, err := createDiscordSession()
@@ -55,8 +57,7 @@ func createDiscordSession() (*discordgo.Session, error) {
 		return nil, err
 	}
 
-	// TODO: should probably accept log level via input (env variable or flag)
-	session.LogLevel = discordgo.LogWarning
+	session.LogLevel = viper.GetInt("DISCORD_LOG_LEVEL")
 
 	return session, nil
 }
