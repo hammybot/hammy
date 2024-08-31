@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:latest
+    restart: no
+    ports:
+      - "11434:11434"
+  chroma:
+    container_name: chroma
+    image: ghcr.io/chroma-core/chroma:latest
+    restart: no
+    ports:
+      - "8000:8000"
+  chroma-ui:
+    container_name: chromaui
+    image: fengzhichao/chromadb-admin
+    ports:
+      - "3000:3000"

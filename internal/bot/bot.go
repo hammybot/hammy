@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"github.com/austinvalle/hammy/internal/llm"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -19,7 +20,12 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected")
 
-	registerBotCommands(logger, session)
+	model, err := llm.NewLLM(logger)
+	if err != nil {
+		return fmt.Errorf("unable to create llm: %w", err)
+	}
+
+	registerBotCommands(logger, session, model)
 
 	defer session.Close()
 
@@ -32,11 +38,17 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	return nil
 }
 
-func registerBotCommands(l *slog.Logger, s *discordgo.Session) {
+func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM) {
 	ping := newPingCommand()
 
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
+
+	analyze := newSummarizeCommand(l, model)
+	textCommands := []command.TextCommand{
+		analyze,
+	}
+	command.RegisterTextCommands(l, s, textCommands)
 }
 
 func createBotLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {

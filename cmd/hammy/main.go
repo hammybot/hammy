@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log/slog"
 	"os"
 	"runtime"
@@ -12,6 +13,10 @@ import (
 
 const botTokenEnv = "DISCORD_BOT_TOKEN"
 
+func init() {
+	viper.SetDefault("ResponseEmoji", "\U0001F914")
+	viper.AutomaticEnv()
+}
 func main() {
 	// TODO: should probably accept log level via input (env variable or flag)
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -24,11 +29,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	info := getBinaryInfo()
+	//info := getBinaryInfo()
 	rootLogger.Info(
 		"hammy started",
-		"version", info.Version,
-		"commit", info.Commit,
+		//	"version", info.Version,
+		//	"commit", info.Commit,
 		"go_os", runtime.GOOS,
 		"go_arch", runtime.GOARCH,
 	)
