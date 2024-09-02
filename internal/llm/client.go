@@ -2,15 +2,23 @@ package llm
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
+	"strings"
+	"sync"
 )
+
+//go:embed models/hammy.modelfile
+var hammyModelFile string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
+const modelDir = "/hammy/models"
 
 // syncClientImpl is a synchronous wrapper for an ollama model
 type syncClientImpl struct {
@@ -41,7 +49,7 @@ func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) Chat(ctx context.Context, messages []api.Message) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message) (string, error) {
 	stream := false
 
 	filtered := filterMessages(maxTokens, messages)
@@ -69,7 +77,7 @@ func (s *syncClientImpl) Chat(ctx context.Context, messages []api.Message) (stri
 }
 
 // Generate calls generate with the model without streaming. systemMessage overrides the modelfile system message.
-func (s *syncClientImpl) Generate(ctx context.Context, systemMessage string, prompt string) (string, error) {
+func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, prompt string) (string, error) {
 	var response string
 
 	truncatedPrompt := prompt
@@ -102,6 +110,55 @@ func (s *syncClientImpl) Generate(ctx context.Context, systemMessage string, pro
 	}
 
 	return response, nil
+}
+
+func (s *syncClientImpl) configure(ctx context.Context) error {
+	resp, err := s.client.List(ctx)
+	if err != nil {
+		return fmt.Errorf("list: %w", err)
+	}
+
+	hammyLoaded := slices.ContainsFunc(resp.Models, func(m api.ListModelResponse) bool {
+		return strings.Contains(m.Name, hammy)
+	})
+
+	if hammyLoaded {
+		s.logger.Info("Hammy already configured, ready")
+		return nil
+	}
+
+	s.logger.Debug("Hammy not installed, building")
+
+	req := &api.CreateRequest{
+		Model:     hammy,
+		Modelfile: hammyModelFile,
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
+		args := []slog.Attr{
+			slog.String("status", r.Status),
+		}
+
+		if r.Total != 0 {
+			percent := int(float64(r.Completed) / float64(r.Total) * 100)
+			args = append(args, slog.Int("percent", percent))
+		}
+
+		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
+
+		if r.Status == "success" {
+			wg.Done()
+		}
+		return nil
+	})
+
+	if pErr != nil {
+		return fmt.Errorf("pull: %w", pErr)
+	}
+	wg.Wait()
+	return nil
 }
 
 func filterMessages(max int, messages []api.Message) []api.Message {

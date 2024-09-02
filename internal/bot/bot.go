@@ -2,16 +2,21 @@ package bot
 
 import (
 	"fmt"
+	"github.com/austinvalle/hammy/internal/command"
 	"github.com/austinvalle/hammy/internal/llm"
+	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"os"
 	"os/signal"
-
-	"github.com/austinvalle/hammy/internal/command"
-	"github.com/bwmarrin/discordgo"
 )
 
 func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
+	//create llm first, this is initializing the models so it can take some time to come online
+	model, llmErr := llm.NewLLM(l, llmUrl)
+	if llmErr != nil {
+		return fmt.Errorf("unable to create llm: %w", llmErr)
+	}
+
 	err := session.Open()
 	if err != nil {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)
@@ -20,12 +25,10 @@ func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
 	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected")
 
-	model, err := llm.NewLLM(logger, llmUrl)
-	if err != nil {
-		return fmt.Errorf("unable to create llm: %w", err)
-	}
-
 	registerBotCommands(logger, session, model)
+	_ = session.UpdateStatusComplex(discordgo.UpdateStatusData{
+		AFK: false,
+	})
 
 	defer session.Close()
 

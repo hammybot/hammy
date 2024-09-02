@@ -23,15 +23,19 @@ type LLM struct {
 }
 
 type syncClient interface {
-	Chat(ctx context.Context, messages []api.Message) (string, error)
-	Generate(ctx context.Context, systemMessage string, prompt string) (string, error)
+	chat(ctx context.Context, messages []api.Message) (string, error)
+	generate(ctx context.Context, systemMessage string, prompt string) (string, error)
 }
 
 func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 	client, err := newSyncClientImpl(hammy, url, logger)
-
 	if err != nil {
 		return nil, fmt.Errorf("new client error: %w", err)
+	}
+
+	cErr := client.configure(context.Background())
+	if cErr != nil {
+		return nil, fmt.Errorf("configure error: %w", cErr)
 	}
 
 	return &LLM{
@@ -59,7 +63,7 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 		l.logger.Info("llm call completed", "elapsed", elapsed)
 	}(t)
 
-	return l.hammy.Generate(ctx, systemMsg, message.Content)
+	return l.hammy.generate(ctx, systemMsg, message.Content)
 }
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
@@ -80,7 +84,7 @@ func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, 
 		})
 	}
 
-	return l.hammy.Chat(ctx, msgs)
+	return l.hammy.chat(ctx, msgs)
 }
 
 func extractContent(ctx context.Context, url string) (string, error) {

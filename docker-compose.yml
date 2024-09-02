@@ -13,10 +13,7 @@ services:
     restart: no
     ports:
       - "11434:11434"
-    volumes:
-      - ./ollama:/hammy
-    environment:
-      - MODEL_DIR=/hammy/models
+
   chroma:
     container_name: chroma
     image: ghcr.io/chroma-core/chroma:latest
