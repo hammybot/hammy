@@ -5,54 +5,39 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/ollama"
-	"github.com/tmc/langchaingo/vectorstores/chroma"
+	"github.com/ollama/ollama/api"
 	"log/slog"
 	"time"
 )
 
 const (
-	model = "mannix/llama3.1-8b-abliterated"
+	hammy      = "hammy"
+	userRole   = "user"
+	systemRole = "system"
+	botRole    = "assistant"
 )
 
 type LLM struct {
 	logger *slog.Logger
-	client *ollama.LLM
+	hammy  syncClient
 }
 
-func NewLLM(logger *slog.Logger) (*LLM, error) {
-	client, err := newClient()
+type syncClient interface {
+	Chat(ctx context.Context, messages []api.Message) (string, error)
+	Generate(ctx context.Context, systemMessage string, prompt string) (string, error)
+}
+
+func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
+	client, err := newSyncClientImpl(hammy, url, logger)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new client error: %w", err)
 	}
+
 	return &LLM{
 		logger: logger,
-		client: client,
+		hammy:  client,
 	}, nil
-}
-func Chat(ctx context.Context, msg string) string {
-	fmt.Println("creating")
-	llm, err := newClient()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("created, asking")
-	response, err := llms.GenerateFromSinglePrompt(ctx,
-		llm,
-		msg,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("got response")
-	chroma.New()
-	return response
-}
-
-func newClient() (*ollama.LLM, error) {
-	return ollama.New(ollama.WithModel(model), ollama.WithServerURL("http://localhost:11434"))
 }
 
 func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.MessageCreate) (string, error) {
@@ -67,16 +52,35 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 		Read the content and answer the following user question. If they say "analyze", or are only giving you a url just provide a simple summary of it. You can disregard any images and extra stuff that is not related to the content of the article itself.
 		%s`, message.Author.Mention(), content)
 
-	userMsg := fmt.Sprintf("User said: %s", message.Content)
-
-	prompt := fmt.Sprintf("%s\n%s", systemMsg, userMsg)
 	t := time.Now()
 
 	defer func(start time.Time) {
 		elapsed := time.Since(start)
 		l.logger.Info("llm call completed", "elapsed", elapsed)
 	}(t)
-	return l.client.Call(ctx, prompt)
+
+	return l.hammy.Generate(ctx, systemMsg, message.Content)
+}
+
+func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
+	msgs := make([]api.Message, 0, len(messages)+1)
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		msg := messages[i]
+		role := userRole
+
+		if msg.Author.Bot {
+			role = botRole
+		}
+
+		// Append messages in correct order
+		msgs = append(msgs, api.Message{
+			Role:    role,
+			Content: msg.Content,
+		})
+	}
+
+	return l.hammy.Chat(ctx, msgs)
 }
 
 func extractContent(ctx context.Context, url string) (string, error) {

@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func RunBot(l *slog.Logger, session *discordgo.Session) error {
+func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
 	err := session.Open()
 	if err != nil {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)
@@ -20,7 +20,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session) error {
 	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected")
 
-	model, err := llm.NewLLM(logger)
+	model, err := llm.NewLLM(logger, llmUrl)
 	if err != nil {
 		return fmt.Errorf("unable to create llm: %w", err)
 	}
@@ -45,8 +45,12 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM) {
 	command.RegisterInteractionCreate(l, s, ping)
 
 	analyze := newSummarizeCommand(l, model)
+	chat := newChatCommand(l, model)
+
+	//order matters they are checked in order
 	textCommands := []command.TextCommand{
 		analyze,
+		chat,
 	}
 	command.RegisterTextCommands(l, s, textCommands)
 }

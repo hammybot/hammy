@@ -14,7 +14,7 @@ type DiscordChannelRetriever interface {
 type TextCommand interface {
 	Name() string
 	Handler(context.Context, *discordgo.Session, *discordgo.MessageCreate) (*discordgo.MessageSend, error)
-	CanActivate(DiscordChannelRetriever, discordgo.Message) bool
+	CanActivate(*discordgo.Session, discordgo.Message) bool
 }
 
 // RegisterTextCommand adds a new handler for messageCreate events.
@@ -29,15 +29,17 @@ func RegisterTextCommands(l *slog.Logger, s *discordgo.Session, tc []TextCommand
 		for _, c := range tc {
 			if c.CanActivate(s, *m.Message) {
 				l.Debug("found message for text command", slog.String("name", c.Name()))
+				_ = s.ChannelTyping(m.ChannelID)
+
 				reply, err := c.Handler(context.Background(), s, m)
 				if err != nil {
-					l.Error(fmt.Sprintf("error handling message: %v", m.Content))
+					l.Error("error handling message", "error", err)
 					if _, sendErr := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Sorry %s, I am having an issue completing your request.", m.Author.Mention())); sendErr != nil {
-						l.Error(fmt.Sprintf("error sending message: %v", err))
+						l.Error("error sending message", "error", sendErr)
 					}
 				}
 				if _, sendErr := s.ChannelMessageSendComplex(m.ChannelID, reply); sendErr != nil {
-					l.Error(fmt.Sprintf("error sending message: %v", sendErr))
+					l.Error("error sending message", "error", sendErr)
 				}
 			}
 		}
