@@ -14,14 +14,14 @@ services:
     ports:
       - "11434:11434"
 
-  chroma:
-    container_name: chroma
-    image: ghcr.io/chroma-core/chroma:latest
-    restart: no
-    ports:
-      - "8000:8000"
-  chroma-ui:
-    container_name: chromaui
-    image: fengzhichao/chromadb-admin
-    ports:
-      - "3000:3000"
+#  chroma:
+#    container_name: chroma
+#    image: ghcr.io/chroma-core/chroma:latest
+#    restart: no
+#    ports:
+#      - "8000:8000"
+#  chroma-ui:
+#    container_name: chromaui
+#    image: fengzhichao/chromadb-admin
+#    ports:
+#      - "3000:3000"
