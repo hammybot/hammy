@@ -67,6 +67,7 @@ func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m 
 
 	urlRegex := regexp.MustCompile(urlPattern)
 	c.logger.Debug("In summary handler")
+
 	blacklistedSites := []string{"twitter.com", "x.com", "facebook.com", "instagram.com", "reddit.com", "google.com"}
 
 	matches := urlRegex.FindStringSubmatch(m.Content)
