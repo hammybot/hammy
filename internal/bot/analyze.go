@@ -35,18 +35,10 @@ func (c *summarizeCommand) Name() string {
 func (c *summarizeCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	urlRegex := regexp.MustCompile(urlPattern)
 
-	//don't respond if we are not tagged, embeds don't use mention for bots, its mention role
-	lookupMentionRole := func(roleId string) bool {
-		role, err := s.State.Role(m.GuildID, roleId)
-		if err != nil {
-			c.logger.Error("Unable to lookup discord role for analysis activation", "roleId", m.MentionRoles[0])
-			return false
-		}
-		return role.Name == s.State.User.Username
-	}
-
-	if !slices.ContainsFunc(m.MentionRoles, lookupMentionRole) {
-		return false
+	if ok, err := isHammyRoleMentioned(s, m); err != nil {
+		c.logger.Error("error checking mentions", err)
+	} else if ok {
+		return true
 	}
 
 	matches := urlRegex.FindStringSubmatch(m.Content)
@@ -96,5 +88,20 @@ func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m 
 	return &discordgo.MessageSend{
 		Content: fmt.Sprintf(response),
 	}, nil
+
+}
+
+func isHammyRoleMentioned(s *discordgo.Session, m discordgo.Message) (bool, error) {
+	var err error
+	mentioned := slices.ContainsFunc(m.MentionRoles, func(roleId string) bool {
+		role, rErr := s.State.Role(m.GuildID, roleId)
+		if rErr != nil && err != nil {
+			err = fmt.Errorf("error getting role: %w", rErr)
+			return false
+		}
+		return role.Name == s.State.User.Username
+	})
+
+	return mentioned, err
 
 }

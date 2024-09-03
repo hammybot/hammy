@@ -36,9 +36,9 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 		return false
 	}
 
-	if slices.ContainsFunc(m.Mentions, func(user *discordgo.User) bool {
-		return user.Username == s.State.User.Username
-	}) {
+	if ok, rErr := isHammyRoleMentioned(s, m); rErr != nil {
+		c.logger.Error("error checking mentions", rErr)
+	} else if ok {
 		return true
 	}
 
