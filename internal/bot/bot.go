@@ -47,11 +47,13 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM) {
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
 
+	adminCommands := newAdminCommand(l, model)
 	analyze := newSummarizeCommand(l, model)
 	chat := newChatCommand(l, model)
 
 	//order matters they are checked in order
 	textCommands := []command.TextCommand{
+		adminCommands,
 		analyze,
 		chat,
 	}

@@ -8,7 +8,9 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -19,6 +21,14 @@ var hammyModelFile string
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
 const modelDir = "/hammy/models"
+
+type Options func(opts map[string]any)
+
+func WithTemperature(t float32) Options {
+	return func(opts map[string]any) {
+		opts["temperature"] = t
+	}
+}
 
 // syncClientImpl is a synchronous wrapper for an ollama model
 type syncClientImpl struct {
@@ -49,8 +59,13 @@ func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error) {
 	stream := false
+	options := map[string]any{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
 
 	filtered := filterMessages(maxTokens, messages)
 
@@ -58,6 +73,7 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message) (stri
 		Model:    s.modelName,
 		Messages: filtered,
 		Stream:   &stream,
+		Options:  options,
 	}
 
 	var response string
@@ -77,8 +93,13 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message) (stri
 }
 
 // Generate calls generate with the model without streaming. systemMessage overrides the modelfile system message.
-func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, prompt string) (string, error) {
+func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error) {
 	var response string
+	options := map[string]any{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
 
 	truncatedPrompt := prompt
 
@@ -92,10 +113,11 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 
 	stream := false
 	req := &api.GenerateRequest{
-		Model:  s.modelName,
-		System: systemMessage,
-		Prompt: truncatedPrompt,
-		Stream: &stream,
+		Model:   s.modelName,
+		System:  systemMessage,
+		Prompt:  truncatedPrompt,
+		Stream:  &stream,
+		Options: options,
 	}
 
 	gErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
@@ -159,6 +181,32 @@ func (s *syncClientImpl) configure(ctx context.Context) error {
 	}
 	wg.Wait()
 	return nil
+}
+
+func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
+	r := regexp.MustCompile(`temperature\s*(?P<temp>\d\.?\d)`)
+	resp, err := s.client.Show(ctx, &api.ShowRequest{
+		Model: hammy,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("show: %w", err)
+	}
+	for _, param := range strings.Split(resp.Parameters, "\n") {
+		if strings.HasPrefix(param, "temperature") {
+			matches := r.FindStringSubmatch(param)
+			idx := r.SubexpIndex("temp")
+			if len(matches) < idx+1 {
+				return 0, fmt.Errorf("could not load temperature")
+			}
+
+			temp, cErr := strconv.ParseFloat(matches[idx], 32)
+			if cErr != nil {
+				return 0, fmt.Errorf("could not load temperature: %w", cErr)
+			}
+			return float32(temp), nil
+		}
+	}
+	return 0, fmt.Errorf("could not find temperature")
 }
 
 func filterMessages(max int, messages []api.Message) []api.Message {
