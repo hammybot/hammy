@@ -17,6 +17,11 @@ const (
 	botRole    = "assistant"
 )
 
+// Settings are returned in GetSettings call for checking various settings
+type Settings struct {
+	Temperature float32
+}
+
 type LLM struct {
 	logger      *slog.Logger
 	hammy       syncClient
@@ -96,6 +101,12 @@ func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, 
 
 func (l *LLM) SetTemperature(temp float32) {
 	l.temperature = temp
+}
+
+func (l *LLM) GetSettings() Settings {
+	return Settings{
+		Temperature: l.temperature,
+	}
 }
 
 func extractContent(ctx context.Context, url string) (string, error) {

@@ -12,9 +12,11 @@ import (
 )
 
 var tempCommand *regexp.Regexp
+var getSettingsCommand *regexp.Regexp
 
 func init() {
 	tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
+	getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
 }
 
 type adminCommand struct {
@@ -36,7 +38,7 @@ func (a *adminCommand) Name() string {
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	//todo: add more admin commands
 
-	return isAuthorAdmin(s, m) && tempCommand.MatchString(m.Content)
+	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content))
 }
 
 func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
@@ -50,6 +52,11 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("temperature set to %.2f", temp),
+		}, nil
+	} else if getSettingsCommand.MatchString(m.Content) {
+		settings := a.llm.GetSettings()
+		return &discordgo.MessageSend{
+			Content: fmt.Sprintf("current settings\n```json\n%+v\n```", settings),
 		}, nil
 	}
 	return nil, fmt.Errorf("could not match admin command")
