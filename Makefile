@@ -7,3 +7,7 @@ up:
 .PHONY: down
 down:
 	docker-compose -f ./${DockerFile} down
+
+.PHONY: delete
+delete:
+	docker exec ollama ollama rm hammy

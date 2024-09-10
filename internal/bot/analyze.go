@@ -35,17 +35,9 @@ func (c *summarizeCommand) Name() string {
 func (c *summarizeCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	urlRegex := regexp.MustCompile(urlPattern)
 
-	//don't respond if we are not tagged, embeds don't use mention for bots, its mention role
-	lookupMentionRole := func(roleId string) bool {
-		role, err := s.State.Role(m.GuildID, roleId)
-		if err != nil {
-			c.logger.Error("Unable to lookup discord role for analysis activation", "roleId", m.MentionRoles[0])
-			return false
-		}
-		return role.Name == s.State.User.Username
-	}
-
-	if !slices.ContainsFunc(m.MentionRoles, lookupMentionRole) {
+	if mentioned, err := isHammyMentioned(s, m); err != nil {
+		c.logger.Error("error checking mentions", err)
+	} else if !mentioned {
 		return false
 	}
 
@@ -61,7 +53,8 @@ func (c *summarizeCommand) CanActivate(s *discordgo.Session, m discordgo.Message
 
 func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
 	//todo: dont rawdog viper
-	if err := s.MessageReactionAdd(m.ChannelID, m.ID, viper.GetString("ResponseEmoji")); err != nil {
+	emoji := viper.GetString("ResponseEmoji")
+	if err := s.MessageReactionAdd(m.ChannelID, m.ID, emoji); err != nil {
 		c.logger.Error("error adding reaction: ", err)
 	}
 
@@ -92,9 +85,33 @@ func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m 
 		c.logger.Error("error in analyzing message", err)
 		return nil, err
 	}
-
+	if removeError := s.MessageReactionRemove(m.ChannelID, m.ID, emoji, "@me"); removeError != nil {
+		c.logger.Error("error removing reaction", removeError)
+	}
 	return &discordgo.MessageSend{
 		Content: fmt.Sprintf(response),
 	}, nil
+
+}
+
+// Hammy can be referenced inconsistently by role or by mention. We should check both to make sure its correct.
+func isHammyMentioned(s *discordgo.Session, m discordgo.Message) (bool, error) {
+	var err error
+	if mentioned := slices.ContainsFunc(m.MentionRoles, func(roleId string) bool {
+		role, rErr := s.State.Role(m.GuildID, roleId)
+		if rErr != nil && err != nil {
+			err = fmt.Errorf("error getting role: %w", rErr)
+			return false
+		}
+		return role.Name == s.State.User.Username
+	}); err != nil {
+		return false, err
+	} else if mentioned {
+		return true, nil
+	}
+
+	return slices.ContainsFunc(m.Mentions, func(user *discordgo.User) bool {
+		return user.ID == s.State.User.ID
+	}), nil
 
 }

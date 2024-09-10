@@ -41,7 +41,7 @@ func RegisterTextCommands(l *slog.Logger, s *discordgo.Session, tc []TextCommand
 				if _, sendErr := s.ChannelMessageSendComplex(m.ChannelID, reply); sendErr != nil {
 					l.Error("error sending message", "error", sendErr)
 				}
-				//dont process further
+				// stop processing future commands
 				break
 			}
 		}
