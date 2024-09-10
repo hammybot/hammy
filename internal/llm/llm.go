@@ -17,14 +17,20 @@ const (
 	botRole    = "assistant"
 )
 
+// Settings are returned in GetSettings call for checking various settings
+type Settings struct {
+	Temperature float32
+}
+
 type LLM struct {
-	logger *slog.Logger
-	hammy  syncClient
+	logger      *slog.Logger
+	hammy       syncClient
+	temperature float32
 }
 
 type syncClient interface {
-	chat(ctx context.Context, messages []api.Message) (string, error)
-	generate(ctx context.Context, systemMessage string, prompt string) (string, error)
+	chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error)
+	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
 }
 
 func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
@@ -38,9 +44,15 @@ func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 		return nil, fmt.Errorf("configure error: %w", cErr)
 	}
 
+	temp, err := client.getTemperature(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("get temperature error: %w", err)
+	}
+
 	return &LLM{
-		logger: logger,
-		hammy:  client,
+		logger:      logger,
+		hammy:       client,
+		temperature: temp,
 	}, nil
 }
 
@@ -63,7 +75,7 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 		l.logger.Info("llm call completed", "elapsed", elapsed)
 	}(t)
 
-	return l.hammy.generate(ctx, systemMsg, message.Content)
+	return l.hammy.generate(ctx, systemMsg, message.Content, WithTemperature(l.temperature))
 }
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
@@ -84,7 +96,17 @@ func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, 
 		})
 	}
 
-	return l.hammy.chat(ctx, msgs)
+	return l.hammy.chat(ctx, msgs, WithTemperature(l.temperature))
+}
+
+func (l *LLM) SetTemperature(temp float32) {
+	l.temperature = temp
+}
+
+func (l *LLM) GetSettings() Settings {
+	return Settings{
+		Temperature: l.temperature,
+	}
 }
 
 func extractContent(ctx context.Context, url string) (string, error) {
