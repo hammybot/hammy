@@ -36,7 +36,7 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 		return false
 	}
 
-	if ok, rErr := isHammyRoleMentioned(s, m); rErr != nil {
+	if ok, rErr := isHammyMentioned(s, m); rErr != nil {
 		c.logger.Error("error checking mentions", rErr)
 	} else if ok {
 		return true
@@ -46,26 +46,12 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 	if strings.Contains(m.Content, "hammy") {
 		return true
 	}
-	//did we respond in the last 5 messages? if so we should keep talking
-	msgs, err := s.ChannelMessages(m.ChannelID, 5, "", "", m.ID)
-	if err != nil {
-		c.logger.Error("could not get messages from channel", err)
-		return false
-	}
-	if slices.ContainsFunc(msgs, func(msg *discordgo.Message) bool {
-		return msg.Author.ID == s.State.User.ID
-	}) {
-		return true
-	}
 
 	//otherwise 10% chance of responding
 	return rand.Intn(10) == 0
 }
 
 func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
-	//get history
-	//hand to llm
-	//respond
 	msgs, err := s.ChannelMessages(m.ChannelID, 50, "", "", m.ID)
 	if err != nil {
 		return nil, err
