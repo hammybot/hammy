@@ -47,11 +47,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	//info := getBinaryInfo()
+	info := getBinaryInfo()
 	rootLogger.Info(
 		"hammy started",
-		//	"version", info.Version,
-		//	"commit", info.Commit,
+		"version", info.Version,
+		"commit", info.Commit,
 		"go_os", runtime.GOOS,
 		"go_arch", runtime.GOARCH,
 	)
