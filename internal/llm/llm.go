@@ -2,6 +2,7 @@ package llm
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
@@ -9,6 +10,9 @@ import (
 	"log/slog"
 	"time"
 )
+
+//go:embed models/hammy.modelfile
+var hammyModelFile string
 
 const (
 	hammy      = "hammy"
@@ -39,8 +43,7 @@ func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 		return nil, fmt.Errorf("new client error: %w", err)
 	}
 
-	cErr := client.configure(context.Background())
-	if cErr != nil {
+	if cErr := client.configure(context.Background()); cErr != nil {
 		return nil, fmt.Errorf("configure error: %w", cErr)
 	}
 

@@ -6,6 +6,8 @@ require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/chromedp/chromedp v0.10.0
 	github.com/ollama/ollama v0.3.9
+	github.com/pkoukk/tiktoken-go v0.1.7
+	github.com/pkoukk/tiktoken-go-loader v0.0.1
 	github.com/spf13/viper v1.19.0
 	github.com/tmc/langchaingo v0.1.12
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
@@ -30,8 +32,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/pkoukk/tiktoken-go v0.1.7 // indirect
-	github.com/pkoukk/tiktoken-go-loader v0.0.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

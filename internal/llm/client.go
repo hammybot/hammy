@@ -9,14 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
 )
-
-//go:embed models/hammy.modelfile
-var hammyModelFile string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
@@ -134,55 +130,6 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 	return response, nil
 }
 
-func (s *syncClientImpl) configure(ctx context.Context) error {
-	resp, err := s.client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("list: %w", err)
-	}
-
-	hammyLoaded := slices.ContainsFunc(resp.Models, func(m api.ListModelResponse) bool {
-		return strings.Contains(m.Name, hammy)
-	})
-
-	if hammyLoaded {
-		s.logger.Info("Hammy already configured, ready")
-		return nil
-	}
-
-	s.logger.Debug("Hammy not installed, building")
-
-	req := &api.CreateRequest{
-		Model:     hammy,
-		Modelfile: hammyModelFile,
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
-		args := []slog.Attr{
-			slog.String("status", r.Status),
-		}
-
-		if r.Total != 0 {
-			percent := int(float64(r.Completed) / float64(r.Total) * 100)
-			args = append(args, slog.Int("percent", percent))
-		}
-
-		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
-
-		if r.Status == "success" {
-			wg.Done()
-		}
-		return nil
-	})
-
-	if pErr != nil {
-		return fmt.Errorf("pull: %w", pErr)
-	}
-	wg.Wait()
-	return nil
-}
-
 func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
 	r := regexp.MustCompile(`temperature\s*(?P<temp>\d\.?\d)`)
 	resp, err := s.client.Show(ctx, &api.ShowRequest{
@@ -255,4 +202,53 @@ func truncatePrompt(prompt string, maxTokens int) string {
 
 	// `high` should be the length of the prompt that fits within maxTokens
 	return prompt[:high]
+}
+
+func (s *syncClientImpl) configure(ctx context.Context) error {
+	//resp, err := s.client.List(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("list: %w", err)
+	//}
+	//
+	//hammyLoaded := slices.ContainsFunc(resp.Models, func(m api.ListModelResponse) bool {
+	//	return strings.Contains(m.Name, hammy)
+	//})
+
+	//if hammyLoaded {
+	//	s.logger.Info("Hammy already configured, ready")
+	//	return nil
+	//}
+
+	stream := false
+	req := &api.CreateRequest{
+		Model:     hammy,
+		Modelfile: hammyModelFile,
+		Stream:    &stream,
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
+		args := []slog.Attr{
+			slog.String("status", r.Status),
+		}
+
+		if r.Total != 0 {
+			percent := int(float64(r.Completed) / float64(r.Total) * 100)
+			args = append(args, slog.Int("percent", percent))
+		}
+
+		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
+
+		if r.Status == "success" {
+			wg.Done()
+		}
+		return nil
+	})
+
+	if pErr != nil {
+		return fmt.Errorf("pull: %w", pErr)
+	}
+	wg.Wait()
+	return nil
 }
