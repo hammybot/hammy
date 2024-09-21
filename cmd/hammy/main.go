@@ -2,46 +2,23 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-	"log"
 	"log/slog"
 	"os"
 	"runtime"
 
 	"github.com/austinvalle/hammy/internal/bot"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/bwmarrin/discordgo"
 )
 
-type Config struct {
-	LlmUrl          string `mapstructure:"LLM_URL"`
-	ResponseEmoji   string `mapstructure:"RESPONSE_EMOJI"`
-	LogLevel        int    `mapstructure:"LOG_LEVEL"`
-	DiscordLogLevel int    `mapstructure:"DISCORD_LOG_LEVEL"`
-	BotToken        string `mapstructure:"DISCORD_BOT_TOKEN"`
-}
-
-func init() {
-	viper.SetDefault("ResponseEmoji", "\U0001F914")
-	viper.SetDefault("DISCORD_LOG_LEVEL", discordgo.LogWarning)
-	viper.SetDefault("LOG_LEVEL", slog.LevelDebug)
-	viper.SetDefault("LLM_URL", "http://localhost:11434")
-	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
-	viper.AutomaticEnv()
-}
-
 func main() {
-	var config Config
-
-	err := viper.Unmarshal(&config)
-	if err != nil {
-		log.Fatalf("unable to decode config, %v", err)
-	}
+	cfg := config.CreateConfig()
 
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.Level(config.LogLevel),
+		Level: slog.Level(cfg.LogLevel),
 	}))
 
-	botSession, err := createDiscordSession(config)
+	botSession, err := createDiscordSession(cfg)
 	if err != nil {
 		rootLogger.Error("fatal error creating discord client", "err", err)
 		os.Exit(1)
@@ -56,24 +33,24 @@ func main() {
 		"go_arch", runtime.GOARCH,
 	)
 
-	if err := bot.RunBot(rootLogger, botSession, config.LlmUrl); err != nil {
+	if err := bot.RunBot(rootLogger, botSession, cfg); err != nil {
 		rootLogger.Error("fatal error starting bot", "err", err)
 		os.Exit(1)
 	}
 }
 
-func createDiscordSession(config Config) (*discordgo.Session, error) {
+func createDiscordSession(cfg config.Config) (*discordgo.Session, error) {
 
-	if config.BotToken == "" {
+	if cfg.BotToken == "" {
 		return nil, fmt.Errorf("DISCORD_BOT_TOKEN environment variable not found")
 	}
 
-	session, err := discordgo.New(fmt.Sprintf("Bot %s", config.BotToken))
+	session, err := discordgo.New(fmt.Sprintf("Bot %s", cfg.BotToken))
 	if err != nil {
 		return nil, err
 	}
 
-	session.LogLevel = config.DiscordLogLevel
+	session.LogLevel = cfg.DiscordLogLevel
 
 	return session, nil
 }

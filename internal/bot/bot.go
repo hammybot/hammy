@@ -1,21 +1,22 @@
 package bot
 
 import (
+	"context"
 	"fmt"
-	"github.com/austinvalle/hammy/internal/command"
-	"github.com/austinvalle/hammy/internal/llm"
-	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"os"
 	"os/signal"
+
+	"github.com/austinvalle/hammy/internal/bot/wato"
+	"github.com/austinvalle/hammy/internal/command"
+	"github.com/austinvalle/hammy/internal/config"
+	"github.com/austinvalle/hammy/internal/llm"
+	"github.com/bwmarrin/discordgo"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
-	//create llm first, this is initializing the models so it can take some time to come online
-	model, llmErr := llm.NewLLM(l, llmUrl)
-	if llmErr != nil {
-		return fmt.Errorf("unable to create llm: %w", llmErr)
-	}
+func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error {
+	ctx := context.Background()
 
 	err := session.Open()
 	if err != nil {
@@ -25,10 +26,24 @@ func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
 	logger := createBotLogger(l, session)
 	logger.Info("bot successfully connected")
 
-	registerBotCommands(logger, session, model)
+	logger.Info("connecting to database", "host", cfg.DBHost, "port", cfg.DBPort)
+
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s", cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort)
+	dbpool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		return fmt.Errorf("error creating database: %w", err)
+	}
+
+	defer dbpool.Close()
+
+	err = registerBotCommands(logger, session, cfg, dbpool)
 	_ = session.UpdateStatusComplex(discordgo.UpdateStatusData{
 		AFK: false,
 	})
+
+	if err != nil {
+		return fmt.Errorf("unable to register bot commands: %w", err)
+	}
 
 	defer session.Close()
 
@@ -41,23 +56,42 @@ func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
 	return nil
 }
 
-func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM) {
+func registerBotCommands(l *slog.Logger, s *discordgo.Session, cfg config.Config, dbPool *pgxpool.Pool) error {
 	ping := newPingCommand()
 
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
 
-	adminCommands := newAdminCommand(l, model)
-	analyze := newSummarizeCommand(l, model)
-	chat := newChatCommand(l, model)
+	textCommands := make([]command.TextCommand, 0)
 
-	//order matters they are checked in order
-	textCommands := []command.TextCommand{
-		adminCommands,
-		analyze,
-		chat,
+	// LLM commands
+	if !cfg.DisableLLM {
+		//create llm first, this is initializing the models so it can take some time to come online
+		model, llmErr := llm.NewLLM(l, cfg.LlmUrl)
+		if llmErr != nil {
+			return fmt.Errorf("unable to create llm: %w", llmErr)
+		}
+
+		adminCommands := newAdminCommand(l, model)
+		analyze := newSummarizeCommand(l, model)
+		chat := newChatCommand(l, model)
+
+		//order matters they are checked in order
+		textCommands = append(textCommands, []command.TextCommand{
+			adminCommands,
+			analyze,
+			chat,
+		}...)
 	}
+
+	// WATO commands
+	textCommands = append(textCommands, []command.TextCommand{
+		wato.NewWatoChallengeCommand(l, dbPool),
+	}...)
+
 	command.RegisterTextCommands(l, s, textCommands)
+
+	return nil
 }
 
 func createBotLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
