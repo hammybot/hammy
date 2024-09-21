@@ -6,7 +6,7 @@ Bot built for Discord w/ Golang and [discordgo](https://github.com/bwmarrin/disc
 
 * Clone the repo
 * Install [Golang](https://go.dev/dl/)
-* Set environment variables:
+* Set environment variables (see [.env](./.env.example) file):
   * **DISCORD_BOT_TOKEN**: Create a discord application and bot token for development testing [here](https://discordapp.com/developers/applications/)
 * Start docker dev (make option available)
 * Run bot with `go run` command
@@ -15,4 +15,3 @@ Bot built for Discord w/ Golang and [discordgo](https://github.com/bwmarrin/disc
 make up
 go run ./cmd/hammy/
 ```
-
