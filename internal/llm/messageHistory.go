@@ -28,7 +28,7 @@ type Author struct {
 	AvatarUrl string `json:"avatar_url"`
 }
 
-func (m Message) metadata() meta {
+func (m Message) metadata() meta { //nolint:unused
 	mentions := []string{}
 
 	for _, mention := range m.Mentions {

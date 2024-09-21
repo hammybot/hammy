@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/ollama/ollama/api"
 )
 
 //go:embed models/hammy.modelfile
@@ -20,7 +21,7 @@ var hammyModelFile string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
-const modelDir = "/hammy/models"
+const modelDir = "/hammy/models" //nolint:unused
 
 type Options func(opts map[string]any)
 
