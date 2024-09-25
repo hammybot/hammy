@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -12,10 +13,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 )
 
 //go:embed models/hammy.modelfile
 var hammyModelFile string
+
+//go:embed chat.tpl
+var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
@@ -66,26 +71,48 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 		opt(options)
 	}
 
-	filtered := filterMessages(maxTokens, messages)
+	formatMessages := func(messages []api.Message) string {
+		var formattedHistory string
+		for _, message := range messages {
+			// Each message is formatted as "Role: Content"
+			formattedHistory += fmt.Sprintf("%s: %s\n", message.Role, message.Content)
+		}
+		return formattedHistory
+	}
 
-	req := &api.ChatRequest{
-		Model:    s.modelName,
-		Messages: filtered,
-		Stream:   &stream,
-		Options:  options,
+	history := formatMessages(messages[1:])                     // History part of the conversation
+	latestMessage := formatMessages([]api.Message{messages[0]}) // Latest message to answer
+
+	// Create the full prompt using a template
+	data := struct {
+		History       string
+		LatestMessage string
+	}{
+		History:       history,
+		LatestMessage: latestMessage,
+	}
+
+	prompt, err := useTemplate(chatTmpl, data)
+	if err != nil {
+		return "", err
+	}
+
+	req := &api.GenerateRequest{
+		Model:   s.modelName,
+		Prompt:  prompt,
+		Options: options,
+		Stream:  &stream,
 	}
 
 	var response string
 
-	cErr := s.client.Chat(ctx, req, func(r api.ChatResponse) error {
-		response = r.Message.Content
-		//todo: temporary
-		r.Summary()
+	cErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
+		response = r.Response
 		return nil
 	})
 
 	if cErr != nil {
-		return "", fmt.Errorf("error chatting: %w", cErr)
+		return "", fmt.Errorf("error generating response: %w", cErr)
 	}
 
 	return response, nil
@@ -242,4 +269,18 @@ func (s *syncClientImpl) configure(ctx context.Context) error {
 	}
 	wg.Wait()
 	return nil
+}
+
+func useTemplate[T any](t string, data T) (string, error) {
+	tpl, err := template.New("chat").Parse(t)
+	if err != nil {
+		return "", fmt.Errorf("error loading template: %w", err)
+	}
+	var promptBuffer bytes.Buffer
+
+	if err = tpl.Execute(&promptBuffer, data); err != nil {
+		return "", fmt.Errorf("error executing template: %w", err)
+	}
+
+	return promptBuffer.String(), nil
 }
