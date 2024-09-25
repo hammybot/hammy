@@ -207,6 +207,8 @@ func truncatePrompt(prompt string, maxTokens int) string {
 	return prompt[:high]
 }
 
+// configure creates hammy in ollama on start and returns when complete.
+// This is a workaround to make sure that the model file is up to date whenever we deploy to main
 func (s *syncClientImpl) configure(ctx context.Context) error {
 	stream := false
 	req := &api.CreateRequest{
