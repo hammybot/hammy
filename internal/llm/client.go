@@ -205,20 +205,6 @@ func truncatePrompt(prompt string, maxTokens int) string {
 }
 
 func (s *syncClientImpl) configure(ctx context.Context) error {
-	//resp, err := s.client.List(ctx)
-	//if err != nil {
-	//	return fmt.Errorf("list: %w", err)
-	//}
-	//
-	//hammyLoaded := slices.ContainsFunc(resp.Models, func(m api.ListModelResponse) bool {
-	//	return strings.Contains(m.Name, hammy)
-	//})
-
-	//if hammyLoaded {
-	//	s.logger.Info("Hammy already configured, ready")
-	//	return nil
-	//}
-
 	stream := false
 	req := &api.CreateRequest{
 		Model:     hammy,

@@ -2,8 +2,7 @@ name: Go Build
 
 on:
   pull_request:
-    branches:
-      - '**'
+    branches: [!"main"]
     paths:
       - 'cmd/**'
       - 'internal/**'
