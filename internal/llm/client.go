@@ -14,6 +14,9 @@ import (
 	"sync"
 )
 
+//go:embed models/hammy.modelfile
+var hammyModelFile string
+
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
 const modelDir = "/hammy/models"

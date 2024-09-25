@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-//go:embed models/hammy.modelfile
-var hammyModelFile string
-
 const (
 	hammy      = "hammy"
 	userRole   = "user"
