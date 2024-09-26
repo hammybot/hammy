@@ -17,6 +17,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
 		return fmt.Errorf("unable to create llm: %w", llmErr)
 	}
 
+	l.Info("opening session and starting bot")
 	err := session.Open()
 	if err != nil {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)
