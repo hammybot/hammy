@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+
+	"github.com/ollama/ollama/api"
 )
 
 //go:embed models/hammy.modelfile
