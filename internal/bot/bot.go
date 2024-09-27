@@ -18,6 +18,7 @@ import (
 func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error {
 	ctx := context.Background()
 
+	l.Info("opening session and starting bot")
 	err := session.Open()
 	if err != nil {
 		return fmt.Errorf("unable to connect bot to discord: %w", err)

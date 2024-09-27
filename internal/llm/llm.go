@@ -2,6 +2,7 @@ package llm
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
@@ -39,16 +40,17 @@ func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 		return nil, fmt.Errorf("new client error: %w", err)
 	}
 
-	cErr := client.configure(context.Background())
-	if cErr != nil {
+	logger.Info("configuring llm")
+	if cErr := client.configure(context.Background()); cErr != nil {
 		return nil, fmt.Errorf("configure error: %w", cErr)
 	}
 
+	logger.Info("getting temperature")
 	temp, err := client.getTemperature(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("get temperature error: %w", err)
 	}
-
+	
 	return &LLM{
 		logger:      logger,
 		hammy:       client,

@@ -1,0 +1,33 @@
+name: Deploy Docker Compose
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: main
+
+      - name: Stop existing containers
+        run: |
+          docker compose down
+
+      - name: Build and Start new containers
+        env:
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
+        run: |
+          docker compose up --build hammy -d
+
+      - name: cleanup
+        run : |
+          docker image prune -f

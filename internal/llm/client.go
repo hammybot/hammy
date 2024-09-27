@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -8,16 +9,17 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/ollama/ollama/api"
+	"text/template"
 )
 
 //go:embed models/hammy.modelfile
 var hammyModelFile string
+
+//go:embed chat.tpl
+var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 493 - 4096
@@ -68,26 +70,48 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 		opt(options)
 	}
 
-	filtered := filterMessages(maxTokens, messages)
+	formatMessages := func(messages []api.Message) string {
+		var formattedHistory string
+		for _, message := range messages {
+			// Each message is formatted as "Role: Content"
+			formattedHistory += fmt.Sprintf("%s: %s\n", message.Role, message.Content)
+		}
+		return formattedHistory
+	}
 
-	req := &api.ChatRequest{
-		Model:    s.modelName,
-		Messages: filtered,
-		Stream:   &stream,
-		Options:  options,
+	history := formatMessages(messages[1:])                     // History part of the conversation
+	latestMessage := formatMessages([]api.Message{messages[0]}) // Latest message to answer
+
+	// Create the full prompt using a template
+	data := struct {
+		History       string
+		LatestMessage string
+	}{
+		History:       history,
+		LatestMessage: latestMessage,
+	}
+
+	prompt, err := useTemplate(chatTmpl, data)
+	if err != nil {
+		return "", err
+	}
+
+	req := &api.GenerateRequest{
+		Model:   s.modelName,
+		Prompt:  prompt,
+		Options: options,
+		Stream:  &stream,
 	}
 
 	var response string
 
-	cErr := s.client.Chat(ctx, req, func(r api.ChatResponse) error {
-		response = r.Message.Content
-		//todo: temporary
-		r.Summary()
+	cErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
+		response = r.Response
 		return nil
 	})
 
 	if cErr != nil {
-		return "", fmt.Errorf("error chatting: %w", cErr)
+		return "", fmt.Errorf("error generating response: %w", cErr)
 	}
 
 	return response, nil
@@ -133,55 +157,6 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 	}
 
 	return response, nil
-}
-
-func (s *syncClientImpl) configure(ctx context.Context) error {
-	resp, err := s.client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("list: %w", err)
-	}
-
-	hammyLoaded := slices.ContainsFunc(resp.Models, func(m api.ListModelResponse) bool {
-		return strings.Contains(m.Name, hammy)
-	})
-
-	if hammyLoaded {
-		s.logger.Info("Hammy already configured, ready")
-		return nil
-	}
-
-	s.logger.Debug("Hammy not installed, building")
-
-	req := &api.CreateRequest{
-		Model:     hammy,
-		Modelfile: hammyModelFile,
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
-		args := []slog.Attr{
-			slog.String("status", r.Status),
-		}
-
-		if r.Total != 0 {
-			percent := int(float64(r.Completed) / float64(r.Total) * 100)
-			args = append(args, slog.Int("percent", percent))
-		}
-
-		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
-
-		if r.Status == "success" {
-			wg.Done()
-		}
-		return nil
-	})
-
-	if pErr != nil {
-		return fmt.Errorf("pull: %w", pErr)
-	}
-	wg.Wait()
-	return nil
 }
 
 func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
@@ -256,4 +231,55 @@ func truncatePrompt(prompt string, maxTokens int) string {
 
 	// `high` should be the length of the prompt that fits within maxTokens
 	return prompt[:high]
+}
+
+// configure creates hammy in ollama on start and returns when complete.
+// This is a workaround to make sure that the model file is up to date whenever we deploy to main
+func (s *syncClientImpl) configure(ctx context.Context) error {
+	stream := false
+	req := &api.CreateRequest{
+		Model:     hammy,
+		Modelfile: hammyModelFile,
+		Stream:    &stream,
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
+		args := []slog.Attr{
+			slog.String("status", r.Status),
+		}
+
+		if r.Total != 0 {
+			percent := int(float64(r.Completed) / float64(r.Total) * 100)
+			args = append(args, slog.Int("percent", percent))
+		}
+
+		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
+
+		if r.Status == "success" {
+			wg.Done()
+		}
+		return nil
+	})
+
+	if pErr != nil {
+		return fmt.Errorf("pull: %w", pErr)
+	}
+	wg.Wait()
+	return nil
+}
+
+func useTemplate[T any](t string, data T) (string, error) {
+	tpl, err := template.New("chat").Parse(t)
+	if err != nil {
+		return "", fmt.Errorf("error loading template: %w", err)
+	}
+	var promptBuffer bytes.Buffer
+
+	if err = tpl.Execute(&promptBuffer, data); err != nil {
+		return "", fmt.Errorf("error executing template: %w", err)
+	}
+
+	return promptBuffer.String(), nil
 }

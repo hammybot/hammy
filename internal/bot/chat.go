@@ -43,13 +43,13 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 		return true
 	}
 
-	//if he was mentioned but not tagged
+	//if he was mentioned but not tagged, 10% chance he defends himself
 	if strings.Contains(m.Content, "hammy") {
-		return true
+		return rand.Intn(10) == 0
 	}
 
-	//otherwise 10% chance of responding
-	return rand.Intn(10) == 0
+	//otherwise 5% chance of responding
+	return rand.Intn(20) == 0
 }
 
 func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {

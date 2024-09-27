@@ -5,15 +5,7 @@ services:
     # set shared memory limit when using docker-compose
     shm_size: 128mb
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - db:/var/lib/postgresql/data
-      # Initialize the database on first create
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - 5432:5432
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
 
   ollama:
     container_name: ollama
@@ -21,8 +13,13 @@ services:
     restart: no
     ports:
       - "11434:11434"
-    environment:
-      OLLAMA_KEEP_ALIVE: 30m
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: ["gpu"]
+              count: all  # Adjust count for the number of GPUs you want to use
 
 #  chroma:
 #    container_name: chroma
@@ -35,7 +32,3 @@ services:
 #    image: fengzhichao/chromadb-admin
 #    ports:
 #      - "3000:3000"
-
-volumes:
-  db:
-    driver: local
