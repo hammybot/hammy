@@ -20,7 +20,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          tags: hammy:latest
+          tags: latest,${{github.sha}}
           push: false
 
       - name: Stop existing containers
