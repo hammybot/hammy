@@ -16,27 +16,17 @@ jobs:
         with:
           path: main
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          tags: hammy:latest,${{github.sha}}
-          push: false
-
       - name: Stop existing containers
         run: |
           docker compose down
 
-      - name: Start new containers
+      - name: Build and Start new containers
         env:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           LOG_LEVEL: ${{ vars.LOG_LEVEL }}
           DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
         run: |
-          docker compose up -d
+          docker compose up --build hammy -d
 
       - name: cleanup
         run : |
