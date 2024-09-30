@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -238,6 +239,22 @@ func truncatePrompt(prompt string, maxTokens int) string {
 // This is a workaround to make sure that the model file is up to date whenever we deploy to main
 func (s *syncClientImpl) configure(ctx context.Context) error {
 	stream := false
+	models, err := s.client.List(ctx)
+	if err != nil {
+		return fmt.Errorf("error listing models: %w", err)
+	}
+	if slices.ContainsFunc(models.Models, func(m api.ListModelResponse) bool {
+		return m.Name == hammy
+	}) {
+		s.logger.Info("cleaning up old hammy model")
+		dErr := s.client.Delete(ctx, &api.DeleteRequest{
+			Model: hammy,
+		})
+		if dErr != nil {
+			return dErr
+		}
+	}
+
 	req := &api.CreateRequest{
 		Model:     hammy,
 		Modelfile: hammyModelFile,

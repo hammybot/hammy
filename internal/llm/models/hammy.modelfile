@@ -1,4 +1,4 @@
-FROM mannix/llama3.1-8b-abliterated
+FROM llama-3.2-3b-instruct-abliterated
 
 PARAMETER temperature 0.8
 
