@@ -73,8 +73,9 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 	}
 
 	formatMessages := func(messages []api.Message) string {
+		trunc := filterMessages(maxTokens, messages[1:])
 		var formattedHistory string
-		for _, message := range messages {
+		for _, message := range trunc {
 			// Each message is formatted as "Role: Content"
 			formattedHistory += fmt.Sprintf("%s: %s\n", message.Role, message.Content)
 		}

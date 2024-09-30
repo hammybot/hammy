@@ -52,7 +52,7 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 }
 
 func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
-	msgs, err := s.ChannelMessages(m.ChannelID, 50, "", "", m.ID)
+	msgs, err := s.ChannelMessages(m.ChannelID, 75, "", "", m.ID)
 	if err != nil {
 		return nil, err
 	}
