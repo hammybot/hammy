@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/austinvalle/hammy/internal/bot"
+	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
 	"log"
 	"log/slog"
 	"os"
-	"runtime"
-
-	"github.com/austinvalle/hammy/internal/bot"
-	"github.com/bwmarrin/discordgo"
 )
 
 type Config struct {
@@ -47,14 +45,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	info := getBinaryInfo()
-	rootLogger.Info(
-		"hammy started",
-		"version", info.Version,
-		"commit", info.Commit,
-		"go_os", runtime.GOOS,
-		"go_arch", runtime.GOARCH,
-	)
+	//info := getBinaryInfo()
+	//rootLogger.Info(
+	//	"hammy started",
+	//	"version", info.Version,
+	//	"commit", info.Commit,
+	//	"go_os", runtime.GOOS,
+	//	"go_arch", runtime.GOARCH,
+	//)
 
 	if err := bot.RunBot(rootLogger, botSession, config.LlmUrl); err != nil {
 		rootLogger.Error("fatal error starting bot", "err", err)

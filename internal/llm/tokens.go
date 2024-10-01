@@ -2,7 +2,7 @@ package llm
 
 import (
 	"fmt"
-	"github.com/ollama/ollama/api"
+	"github.com/bwmarrin/discordgo"
 	"github.com/pkoukk/tiktoken-go"
 	tiktoken_loader "github.com/pkoukk/tiktoken-go-loader"
 )
@@ -24,8 +24,8 @@ func getTokenCount(text string) int {
 	return len(token)
 }
 
-// Counts the tokens in a given ollama api message using chatgpt tokenizer, DOES NOT INCLUDE IMAGES OR TOOL CALLS
-func getMessageTokenCount(m api.Message) int {
+// Counts the tokens in a given discord message using chatgpt tokenizer,
+func getMessageTokenCount(m discordgo.Message) int {
 	var numTokens int
 
 	tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
@@ -34,7 +34,7 @@ func getMessageTokenCount(m api.Message) int {
 		panic(fmt.Errorf("getEncoding: %v", err))
 	}
 	numTokens += len(tke.Encode(m.Content, nil, nil))
-	numTokens += len(tke.Encode(m.Role, nil, nil))
+	numTokens += len(tke.Encode(m.Author.Mention(), nil, nil))
 
 	return numTokens
 }

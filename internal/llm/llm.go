@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
-	"github.com/ollama/ollama/api"
 	"log/slog"
+	"slices"
 	"time"
 )
 
@@ -30,7 +30,7 @@ type LLM struct {
 }
 
 type syncClient interface {
-	chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error)
+	chat(ctx context.Context, messages []*discordgo.Message, opts ...Options) (string, error)
 	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
 }
 
@@ -50,7 +50,7 @@ func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get temperature error: %w", err)
 	}
-	
+
 	return &LLM{
 		logger:      logger,
 		hammy:       client,
@@ -81,24 +81,8 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 }
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
-	msgs := make([]api.Message, 0, len(messages)+1)
-
-	for i := len(messages) - 1; i >= 0; i-- {
-		msg := messages[i]
-		role := userRole
-
-		if msg.Author.Bot {
-			role = botRole
-		}
-
-		// Append messages in correct order
-		msgs = append(msgs, api.Message{
-			Role:    role,
-			Content: msg.Content,
-		})
-	}
-
-	return l.hammy.chat(ctx, msgs, WithTemperature(l.temperature))
+	slices.Reverse(messages)
+	return l.hammy.chat(ctx, messages, WithTemperature(l.temperature))
 }
 
 func (l *LLM) SetTemperature(temp float32) {

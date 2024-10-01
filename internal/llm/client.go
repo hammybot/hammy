@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
@@ -64,7 +65,7 @@ func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, messages []*discordgo.Message, opts ...Options) (string, error) {
 	stream := false
 	options := map[string]any{}
 
@@ -72,26 +73,21 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 		opt(options)
 	}
 
-	formatMessages := func(messages []api.Message) string {
-		trunc := filterMessages(maxTokens, messages[1:])
+	formatMessages := func(msgs ...*discordgo.Message) string {
+		trunc := filterMessages(maxTokens, msgs)
 		var formattedHistory string
-		for _, message := range trunc {
-			// Each message is formatted as "Role: Content"
-			formattedHistory += fmt.Sprintf("%s: %s\n", message.Role, message.Content)
+		for _, m := range trunc {
+			formattedHistory += fmt.Sprintf("%s: %s\n", m.Author.Username, m.Content)
 		}
 		return formattedHistory
 	}
 
-	history := formatMessages(messages[1:])                     // History part of the conversation
-	latestMessage := formatMessages([]api.Message{messages[0]}) // Latest message to answer
-
-	// Create the full prompt using a template
 	data := struct {
 		History       string
 		LatestMessage string
 	}{
-		History:       history,
-		LatestMessage: latestMessage,
+		History:       formatMessages(messages[:len(messages)-1]...),
+		LatestMessage: formatMessages(messages[len(messages)-1]),
 	}
 
 	prompt, err := useTemplate(chatTmpl, data)
@@ -188,18 +184,18 @@ func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
 	return 0, fmt.Errorf("could not find temperature")
 }
 
-func filterMessages(max int, messages []api.Message) []api.Message {
+func filterMessages(max int, messages []*discordgo.Message) []*discordgo.Message {
 	var tokenCount int
-	var filteredMessages []api.Message
+	var filteredMessages []*discordgo.Message
 
 	// Iterate through messages to count tokens and maintain the history
 	for _, m := range messages {
-		count := getMessageTokenCount(m)
+		count := getMessageTokenCount(*m)
 
 		if tokenCount+count > max {
 			// Remove messages from the top of the history until we are under the limit
 			for len(filteredMessages) > 0 && tokenCount+count > max {
-				oldCount := getMessageTokenCount(filteredMessages[0])
+				oldCount := getMessageTokenCount(*filteredMessages[0])
 				tokenCount -= oldCount
 				filteredMessages = filteredMessages[1:]
 			}
