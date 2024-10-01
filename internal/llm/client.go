@@ -5,11 +5,13 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,7 +25,7 @@ var hammyModelFile string
 var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
-const maxTokens = 128000 - 493 - 4096
+const maxTokens = 128000 - 515 - 4096
 const modelDir = "/hammy/models"
 
 type Options func(opts map[string]any)
@@ -39,11 +41,12 @@ type syncClientImpl struct {
 	modelName string
 	client    *api.Client
 	logger    *slog.Logger
+	keepAlive *api.Duration
 }
 
 // todo: use metrics from response to debug log, summary writes to stderr for some reason.
-func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*syncClientImpl, error) {
-	base, err := url.Parse(baseUrl)
+func newSyncClientImpl(modelName string, cfg config.Config, logger *slog.Logger) (*syncClientImpl, error) {
+	base, err := url.Parse(cfg.LlmUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +62,12 @@ func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*
 		modelName: modelName,
 		client:    c,
 		logger:    logger,
+		keepAlive: &api.Duration{Duration: cfg.KeepAlive},
 	}, nil
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Options) (string, error) {
 	stream := false
 	options := map[string]any{}
 
@@ -71,25 +75,16 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 		opt(options)
 	}
 
-	formatMessages := func(messages []api.Message) string {
-		var formattedHistory string
-		for _, message := range messages {
-			// Each message is formatted as "Role: Content"
-			formattedHistory += fmt.Sprintf("%s: %s\n", message.Role, message.Content)
-		}
-		return formattedHistory
-	}
+	latest := msgs[len(msgs)-1]
+	//todo: this token count really isnt accurate because of the template
+	history := filterMessages(maxTokens-getTokenCount(latest)-15, msgs[:len(msgs)-1])
 
-	history := formatMessages(messages[1:])                     // History part of the conversation
-	latestMessage := formatMessages([]api.Message{messages[0]}) // Latest message to answer
-
-	// Create the full prompt using a template
 	data := struct {
 		History       string
 		LatestMessage string
 	}{
-		History:       history,
-		LatestMessage: latestMessage,
+		History:       strings.Join(history, "\n"),
+		LatestMessage: latest,
 	}
 
 	prompt, err := useTemplate(chatTmpl, data)
@@ -98,10 +93,11 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []api.Message, opts 
 	}
 
 	req := &api.GenerateRequest{
-		Model:   s.modelName,
-		Prompt:  prompt,
-		Options: options,
-		Stream:  &stream,
+		Model:     s.modelName,
+		Prompt:    prompt,
+		Options:   options,
+		Stream:    &stream,
+		KeepAlive: s.keepAlive,
 	}
 
 	var response string
@@ -139,11 +135,12 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 
 	stream := false
 	req := &api.GenerateRequest{
-		Model:   s.modelName,
-		System:  systemMessage,
-		Prompt:  truncatedPrompt,
-		Stream:  &stream,
-		Options: options,
+		Model:     s.modelName,
+		System:    systemMessage,
+		Prompt:    truncatedPrompt,
+		Stream:    &stream,
+		Options:   options,
+		KeepAlive: s.keepAlive,
 	}
 
 	gErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
@@ -186,18 +183,18 @@ func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
 	return 0, fmt.Errorf("could not find temperature")
 }
 
-func filterMessages(max int, messages []api.Message) []api.Message {
+func filterMessages(max int, messages []string) []string {
 	var tokenCount int
-	var filteredMessages []api.Message
+	var filteredMessages []string
 
 	// Iterate through messages to count tokens and maintain the history
 	for _, m := range messages {
-		count := getMessageTokenCount(m)
+		count := getTokenCount(m)
 
 		if tokenCount+count > max {
 			// Remove messages from the top of the history until we are under the limit
 			for len(filteredMessages) > 0 && tokenCount+count > max {
-				oldCount := getMessageTokenCount(filteredMessages[0])
+				oldCount := getTokenCount(filteredMessages[0])
 				tokenCount -= oldCount
 				filteredMessages = filteredMessages[1:]
 			}
@@ -238,6 +235,22 @@ func truncatePrompt(prompt string, maxTokens int) string {
 // This is a workaround to make sure that the model file is up to date whenever we deploy to main
 func (s *syncClientImpl) configure(ctx context.Context) error {
 	stream := false
+	models, err := s.client.List(ctx)
+	if err != nil {
+		return fmt.Errorf("error listing models: %w", err)
+	}
+	if slices.ContainsFunc(models.Models, func(m api.ListModelResponse) bool {
+		return m.Name == hammy
+	}) {
+		s.logger.Info("cleaning up old hammy model")
+		dErr := s.client.Delete(ctx, &api.DeleteRequest{
+			Model: hammy,
+		})
+		if dErr != nil {
+			return dErr
+		}
+	}
+
 	req := &api.CreateRequest{
 		Model:     hammy,
 		Modelfile: hammyModelFile,

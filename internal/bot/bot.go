@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"github.com/austinvalle/hammy/internal/command"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/austinvalle/hammy/internal/llm"
 	"github.com/bwmarrin/discordgo"
 	"log/slog"
@@ -10,9 +11,9 @@ import (
 	"os/signal"
 )
 
-func RunBot(l *slog.Logger, session *discordgo.Session, llmUrl string) error {
+func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error {
 	//create llm first, this is initializing the models so it can take some time to come online
-	model, llmErr := llm.NewLLM(l, llmUrl)
+	model, llmErr := llm.NewLLM(l, cfg)
 	if llmErr != nil {
 		return fmt.Errorf("unable to create llm: %w", llmErr)
 	}
