@@ -4,18 +4,17 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
-	"github.com/ollama/ollama/api"
 	"log/slog"
+	"slices"
+	"strings"
 	"time"
 )
 
 const (
-	hammy      = "hammy"
-	userRole   = "user"
-	systemRole = "system"
-	botRole    = "assistant"
+	hammy = "hammy"
 )
 
 // Settings are returned in GetSettings call for checking various settings
@@ -30,12 +29,12 @@ type LLM struct {
 }
 
 type syncClient interface {
-	chat(ctx context.Context, messages []api.Message, opts ...Options) (string, error)
+	chat(ctx context.Context, messages []string, opts ...Options) (string, error)
 	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
 }
 
-func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
-	client, err := newSyncClientImpl(hammy, url, logger)
+func NewLLM(logger *slog.Logger, cfg config.Config) (*LLM, error) {
+	client, err := newSyncClientImpl(hammy, cfg, logger)
 	if err != nil {
 		return nil, fmt.Errorf("new client error: %w", err)
 	}
@@ -50,7 +49,7 @@ func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get temperature error: %w", err)
 	}
-	
+
 	return &LLM{
 		logger:      logger,
 		hammy:       client,
@@ -81,23 +80,16 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 }
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
-	msgs := make([]api.Message, 0, len(messages)+1)
-
-	for i := len(messages) - 1; i >= 0; i-- {
-		msg := messages[i]
-		role := userRole
-
-		if msg.Author.Bot {
-			role = botRole
+	slices.Reverse(messages)
+	msgs := make([]string, 0)
+	for _, message := range messages {
+		author := message.Author.Username
+		if message.Author.Bot {
+			author = "you"
 		}
-
-		// Append messages in correct order
-		msgs = append(msgs, api.Message{
-			Role:    role,
-			Content: msg.Content,
-		})
+		content := strings.ReplaceAll(message.Content, "\n", "")
+		msgs = append(msgs, fmt.Sprintf("%s:\"%s\"", author, content))
 	}
-
 	return l.hammy.chat(ctx, msgs, WithTemperature(l.temperature))
 }
 
