@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"runtime"
 )
 
 type Config struct {
@@ -45,14 +46,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	//info := getBinaryInfo()
-	//rootLogger.Info(
-	//	"hammy started",
-	//	"version", info.Version,
-	//	"commit", info.Commit,
-	//	"go_os", runtime.GOOS,
-	//	"go_arch", runtime.GOARCH,
-	//)
+	info := getBinaryInfo()
+	rootLogger.Info(
+		"hammy started",
+		"version", info.Version,
+		"commit", info.Commit,
+		"go_os", runtime.GOOS,
+		"go_arch", runtime.GOARCH,
+	)
 
 	if err := bot.RunBot(rootLogger, botSession, config.LlmUrl); err != nil {
 		rootLogger.Error("fatal error starting bot", "err", err)
