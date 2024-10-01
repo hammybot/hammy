@@ -2,7 +2,6 @@ package llm
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"github.com/pkoukk/tiktoken-go"
 	tiktoken_loader "github.com/pkoukk/tiktoken-go-loader"
 )
@@ -22,19 +21,4 @@ func getTokenCount(text string) int {
 	token := tke.Encode(text, nil, nil)
 
 	return len(token)
-}
-
-// Counts the tokens in a given discord message using chatgpt tokenizer,
-func getMessageTokenCount(m discordgo.Message) int {
-	var numTokens int
-
-	tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
-	tke, err := tiktoken.GetEncoding(encoding)
-	if err != nil {
-		panic(fmt.Errorf("getEncoding: %v", err))
-	}
-	numTokens += len(tke.Encode(m.Content, nil, nil))
-	numTokens += len(tke.Encode(m.Author.Mention(), nil, nil))
-
-	return numTokens
 }

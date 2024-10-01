@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/bwmarrin/discordgo"
 	"github.com/ollama/ollama/api"
 	"log/slog"
@@ -25,7 +26,7 @@ var hammyModelFile string
 var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
-const maxTokens = 128000 - 493 - 4096
+const maxTokens = 128000 - 515 - 4096
 const modelDir = "/hammy/models"
 
 type Options func(opts map[string]any)
@@ -41,11 +42,12 @@ type syncClientImpl struct {
 	modelName string
 	client    *api.Client
 	logger    *slog.Logger
+	keepAlive *api.Duration
 }
 
 // todo: use metrics from response to debug log, summary writes to stderr for some reason.
-func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*syncClientImpl, error) {
-	base, err := url.Parse(baseUrl)
+func newSyncClientImpl(modelName string, cfg config.Config, logger *slog.Logger) (*syncClientImpl, error) {
+	base, err := url.Parse(cfg.LlmUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +63,7 @@ func newSyncClientImpl(modelName string, baseUrl string, logger *slog.Logger) (*
 		modelName: modelName,
 		client:    c,
 		logger:    logger,
+		keepAlive: &api.Duration{Duration: cfg.KeepAlive},
 	}, nil
 }
 
@@ -73,21 +76,25 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []*discordgo.Message
 		opt(options)
 	}
 
-	formatMessages := func(msgs ...*discordgo.Message) string {
-		trunc := filterMessages(maxTokens, msgs)
-		var formattedHistory string
-		for _, m := range trunc {
-			formattedHistory += fmt.Sprintf("%s: %s\n", m.Author.Username, m.Content)
-		}
-		return formattedHistory
+	formatMessage := func(m *discordgo.Message) string {
+		str := strings.ReplaceAll(m.Content, "\n", " ")
+		return fmt.Sprintf("%s: \"%s\"", m.Author.Username, str)
 	}
+
+	latest := formatMessage(messages[len(messages)-1])
+	history := make([]string, 0)
+	for _, message := range messages[:len(messages)-1] {
+		history = append(history, formatMessage(message))
+	}
+	//todo: this token count really isnt accurate because of the template
+	history = filterMessages(maxTokens-getTokenCount(latest)-15, history)
 
 	data := struct {
 		History       string
 		LatestMessage string
 	}{
-		History:       formatMessages(messages[:len(messages)-1]...),
-		LatestMessage: formatMessages(messages[len(messages)-1]),
+		History:       strings.Join(history, "\n"),
+		LatestMessage: latest,
 	}
 
 	prompt, err := useTemplate(chatTmpl, data)
@@ -96,10 +103,11 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []*discordgo.Message
 	}
 
 	req := &api.GenerateRequest{
-		Model:   s.modelName,
-		Prompt:  prompt,
-		Options: options,
-		Stream:  &stream,
+		Model:     s.modelName,
+		Prompt:    prompt,
+		Options:   options,
+		Stream:    &stream,
+		KeepAlive: s.keepAlive,
 	}
 
 	var response string
@@ -137,11 +145,12 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 
 	stream := false
 	req := &api.GenerateRequest{
-		Model:   s.modelName,
-		System:  systemMessage,
-		Prompt:  truncatedPrompt,
-		Stream:  &stream,
-		Options: options,
+		Model:     s.modelName,
+		System:    systemMessage,
+		Prompt:    truncatedPrompt,
+		Stream:    &stream,
+		Options:   options,
+		KeepAlive: s.keepAlive,
 	}
 
 	gErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
@@ -184,18 +193,18 @@ func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
 	return 0, fmt.Errorf("could not find temperature")
 }
 
-func filterMessages(max int, messages []*discordgo.Message) []*discordgo.Message {
+func filterMessages(max int, messages []string) []string {
 	var tokenCount int
-	var filteredMessages []*discordgo.Message
+	var filteredMessages []string
 
 	// Iterate through messages to count tokens and maintain the history
 	for _, m := range messages {
-		count := getMessageTokenCount(*m)
+		count := getTokenCount(m)
 
 		if tokenCount+count > max {
 			// Remove messages from the top of the history until we are under the limit
 			for len(filteredMessages) > 0 && tokenCount+count > max {
-				oldCount := getMessageTokenCount(*filteredMessages[0])
+				oldCount := getTokenCount(filteredMessages[0])
 				tokenCount -= oldCount
 				filteredMessages = filteredMessages[1:]
 			}

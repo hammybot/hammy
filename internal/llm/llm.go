@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/austinvalle/hammy/internal/config"
 	"github.com/bwmarrin/discordgo"
 	"github.com/chromedp/chromedp"
 	"log/slog"
@@ -12,10 +13,7 @@ import (
 )
 
 const (
-	hammy      = "hammy"
-	userRole   = "user"
-	systemRole = "system"
-	botRole    = "assistant"
+	hammy = "hammy"
 )
 
 // Settings are returned in GetSettings call for checking various settings
@@ -34,8 +32,8 @@ type syncClient interface {
 	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
 }
 
-func NewLLM(logger *slog.Logger, url string) (*LLM, error) {
-	client, err := newSyncClientImpl(hammy, url, logger)
+func NewLLM(logger *slog.Logger, cfg config.Config) (*LLM, error) {
+	client, err := newSyncClientImpl(hammy, cfg, logger)
 	if err != nil {
 		return nil, fmt.Errorf("new client error: %w", err)
 	}
