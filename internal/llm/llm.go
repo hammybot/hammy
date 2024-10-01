@@ -9,6 +9,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -28,7 +29,7 @@ type LLM struct {
 }
 
 type syncClient interface {
-	chat(ctx context.Context, messages []*discordgo.Message, opts ...Options) (string, error)
+	chat(ctx context.Context, messages []string, opts ...Options) (string, error)
 	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
 }
 
@@ -80,7 +81,16 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
 	slices.Reverse(messages)
-	return l.hammy.chat(ctx, messages, WithTemperature(l.temperature))
+	msgs := make([]string, 0)
+	for _, message := range messages {
+		author := message.Author.Username
+		if message.Author.Bot {
+			author = "you"
+		}
+		content := strings.ReplaceAll(message.Content, "\n", "")
+		msgs = append(msgs, fmt.Sprintf("%s:\"%s\"", author, content))
+	}
+	return l.hammy.chat(ctx, msgs, WithTemperature(l.temperature))
 }
 
 func (l *LLM) SetTemperature(temp float32) {

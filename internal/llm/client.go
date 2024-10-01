@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/austinvalle/hammy/internal/config"
-	"github.com/bwmarrin/discordgo"
 	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
@@ -68,7 +67,7 @@ func newSyncClientImpl(modelName string, cfg config.Config, logger *slog.Logger)
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, messages []*discordgo.Message, opts ...Options) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Options) (string, error) {
 	stream := false
 	options := map[string]any{}
 
@@ -76,18 +75,9 @@ func (s *syncClientImpl) chat(ctx context.Context, messages []*discordgo.Message
 		opt(options)
 	}
 
-	formatMessage := func(m *discordgo.Message) string {
-		str := strings.ReplaceAll(m.Content, "\n", " ")
-		return fmt.Sprintf("%s: \"%s\"", m.Author.Username, str)
-	}
-
-	latest := formatMessage(messages[len(messages)-1])
-	history := make([]string, 0)
-	for _, message := range messages[:len(messages)-1] {
-		history = append(history, formatMessage(message))
-	}
+	latest := msgs[len(msgs)-1]
 	//todo: this token count really isnt accurate because of the template
-	history = filterMessages(maxTokens-getTokenCount(latest)-15, history)
+	history := filterMessages(maxTokens-getTokenCount(latest)-15, msgs[:len(msgs)-1])
 
 	data := struct {
 		History       string
