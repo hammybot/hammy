@@ -81,3 +81,16 @@ func setStatusMessageID(dbPool *pgxpool.Pool, c challenge, msgID string) error {
 
 	return err
 }
+
+func setBetLimit(dbPool *pgxpool.Pool, c challenge, betLimit int) error {
+	updateQuery := `
+		UPDATE public.challenges
+		SET "Status"= $1,
+			"BetLimit"= $2
+		WHERE "Id"= $3
+	
+	`
+	_, err := dbPool.Exec(context.Background(), updateQuery, pendingBets, betLimit, c.ID)
+
+	return err
+}

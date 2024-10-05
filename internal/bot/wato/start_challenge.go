@@ -12,45 +12,34 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// TODO: acceptChallengeCommand (accept + send DMs)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-response.handler.ts
-// TODO: declineChallengeCommand (decline)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-decline.handler.ts
-// TODO: betCommand (one from each player, in DM)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-bet.handler.ts
-// TODO: helpCommand (basic help for the game, i.e. status)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-help.handler.ts
-// TODO: leaderBoardCommand (leaderboard for completed challenges)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-lb.handler.ts
-
-// challengeCommand contains a text command that responds to a user mentioning another user
+// startChallengeCommand contains a text command that responds to a user mentioning another user
 // along with the phrase "what are the odds ". This will prompt hammy to create a new challenge
 // in the database and send an embed message to the same channel where the initial message was
 // receive from.
 //
 // The next command for a challenge will come from either the acceptChallengeCommand
 // or declineChallengeCommand.
-type challengeCommand struct {
+type startChallengeCommand struct {
 	logger *slog.Logger
 	dbPool *pgxpool.Pool
 }
 
-func NewWatoChallengeCommand(logger *slog.Logger, dbPool *pgxpool.Pool) *challengeCommand {
-	return &challengeCommand{
+func NewWatoStartChallengeCommand(logger *slog.Logger, dbPool *pgxpool.Pool) *startChallengeCommand {
+	return &startChallengeCommand{
 		logger: logger,
 		dbPool: dbPool,
 	}
 }
 
-func (c *challengeCommand) Name() string {
-	return "wato-challenge"
+func (c *startChallengeCommand) Name() string {
+	return "wato-start-challenge"
 }
 
-func (c *challengeCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
+func (c *startChallengeCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	// Verify it's in a text channel
 	channel, err := s.Channel(m.ChannelID)
 	if err != nil {
-		c.logger.Error("error getting channel ID for challengeCommand", "err", err)
+		c.logger.Error("error getting channel ID for startChallengeCommand", "err", err)
 	}
 
 	if channel.Type != discordgo.ChannelTypeGuildText {
@@ -73,7 +62,7 @@ func (c *challengeCommand) CanActivate(s *discordgo.Session, m discordgo.Message
 	return strings.Contains(strings.ToLower(m.Content), `what are the odds `)
 }
 
-func (c *challengeCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
+func (c *startChallengeCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
 	challenger := m.Author
 	challenged := m.Mentions[0] // guaranteed by the CanActivate above
 
@@ -104,7 +93,7 @@ func (c *challengeCommand) Handler(_ context.Context, s *discordgo.Session, m *d
 		return nil, err
 	}
 
-	statusEmbed := watoStatusEmbed(challenger, challenged, *activeChallenge)
+	statusEmbed := watoStatusEmbed(challenger, challenged, activeChallenge.Status, activeChallenge.Description)
 	statusMessage, err := s.ChannelMessageSendEmbed(m.ChannelID, statusEmbed)
 	if err != nil {
 		return nil, err
@@ -114,11 +103,10 @@ func (c *challengeCommand) Handler(_ context.Context, s *discordgo.Session, m *d
 }
 
 // runValidation will return a message embed to send if validation fails
-func (c *challengeCommand) runValidation(challenger, challenged *discordgo.User) (*discordgo.MessageEmbed, error) {
-	// TODO: allowing bots for now
-	// if challenger.Bot || challenged.Bot {
-	// 	return validationErrEmbed("Bots can't play the odds game.")
-	// }
+func (c *startChallengeCommand) runValidation(challenger, challenged *discordgo.User) (*discordgo.MessageEmbed, error) {
+	if challenger.Bot || challenged.Bot {
+		return validationErrEmbed("Bots can't play the odds game."), nil
+	}
 
 	if challenger.ID == challenged.ID {
 		return validationErrEmbed("You can't challenge yourself."), nil
@@ -152,16 +140,16 @@ func validationErrEmbed(msg string) *discordgo.MessageEmbed {
 	}
 }
 
-func watoStatusEmbed(challenger, challenged *discordgo.User, c challenge) *discordgo.MessageEmbed {
+func watoStatusEmbed(challenger, challenged *discordgo.User, status challengeStatus, description string) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Type:        discordgo.EmbedTypeRich,
 		Title:       fmt.Sprintf("__%s__ has challenged __%s__ to a game of odds!", challenger.Username, challenged.Username),
-		Description: fmt.Sprintf("```%s```", c.Description),
-		Color:       statusColor(c.Status),
+		Description: fmt.Sprintf("```%s```", description),
+		Color:       statusColor(status),
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:  "**Status**",
-				Value: statusText(c.Status, challenged.ID),
+				Value: statusText(status, challenged.ID),
 			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
