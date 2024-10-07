@@ -94,3 +94,16 @@ func setBetLimit(dbPool *pgxpool.Pool, c challenge, betLimit int) error {
 
 	return err
 }
+
+func declineChallenge(dbPool *pgxpool.Pool, c challenge) error {
+	updateQuery := `
+		UPDATE public.challenges
+		SET "Status"= $1,
+			"CompletedTimestamp"= now()
+		WHERE "Id"= $2
+	
+	`
+	_, err := dbPool.Exec(context.Background(), updateQuery, declined, c.ID)
+
+	return err
+}

@@ -15,8 +15,6 @@ import (
 
 var validNumberRegex = regexp.MustCompile(`[-]?\d+(,\d+)*`)
 
-// TODO: declineChallengeCommand (decline)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-decline.handler.ts
 // TODO: betCommand (one from each player, in DM)
 // - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-bet.handler.ts
 // TODO: helpCommand (basic help for the game, i.e. status)
