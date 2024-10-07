@@ -75,7 +75,6 @@ func setStatusMessageID(dbPool *pgxpool.Pool, c challenge, msgID string) error {
 		UPDATE public.challenges
 		SET "StatusMessageId"= $1
 		WHERE "Id"= $2
-	
 	`
 	_, err := dbPool.Exec(context.Background(), updateQuery, msgID, c.ID)
 
@@ -88,7 +87,6 @@ func setBetLimit(dbPool *pgxpool.Pool, c challenge, betLimit int) error {
 		SET "Status"= $1,
 			"BetLimit"= $2
 		WHERE "Id"= $3
-	
 	`
 	_, err := dbPool.Exec(context.Background(), updateQuery, pendingBets, betLimit, c.ID)
 
@@ -101,9 +99,41 @@ func declineChallenge(dbPool *pgxpool.Pool, c challenge) error {
 		SET "Status"= $1,
 			"CompletedTimestamp"= now()
 		WHERE "Id"= $2
-	
 	`
 	_, err := dbPool.Exec(context.Background(), updateQuery, declined, c.ID)
+
+	return err
+}
+
+func placeUserBet(dbPool *pgxpool.Pool, c challenge, bet int, isAuthorChallenger bool) error {
+	var updateQuery string
+	if isAuthorChallenger {
+		updateQuery = `
+			UPDATE public.challenges
+			SET "ChallengerBet"= $1
+			WHERE "Id"= $2
+		`
+	} else {
+		updateQuery = `
+			UPDATE public.challenges
+			SET "ChallengedBet"= $1
+			WHERE "Id"= $2
+		`
+	}
+	_, err := dbPool.Exec(context.Background(), updateQuery, bet, c.ID)
+
+	return err
+}
+
+func updateGameToCompleted(dbPool *pgxpool.Pool, c challenge, winnerID string) error {
+	updateQuery := `
+		UPDATE public.challenges
+		SET "Status"= $1,
+			"WinnerId"=$2,
+			"CompletedTimestamp"=now()
+		WHERE "Id"= $3
+	`
+	_, err := dbPool.Exec(context.Background(), updateQuery, completed, winnerID, c.ID)
 
 	return err
 }

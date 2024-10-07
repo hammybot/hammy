@@ -90,6 +90,7 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, cfg config.Config
 		wato.NewWatoStartChallengeCommand(l, dbPool),
 		wato.NewWatoAcceptChallengeCommand(l, dbPool),
 		wato.NewWatoDeclineChallengeCommand(l, dbPool),
+		wato.NewWatoPlaceBetCommand(l, dbPool),
 	}...)
 
 	command.RegisterTextCommands(l, s, textCommands)

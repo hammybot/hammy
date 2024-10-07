@@ -144,8 +144,9 @@ func createDMEmbed(username string, betLimit int, c challenge) *discordgo.Messag
 		Color:       0xffffff,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name:  "**Status**",
-				Value: fmt.Sprintf("Respond here with a number between 1 and %d", betLimit),
+				Name:   "**Status**",
+				Value:  fmt.Sprintf("Respond here with a number between 1 and %d", betLimit),
+				Inline: true,
 			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
