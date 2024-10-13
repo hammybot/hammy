@@ -48,14 +48,10 @@ func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error
 
 	defer dbpool.Close()
 
-	err = registerBotCommands(logger, session, model, cfg, dbpool)
+	registerBotCommands(logger, session, model, cfg, dbpool)
 	_ = session.UpdateStatusComplex(discordgo.UpdateStatusData{
 		AFK: false,
 	})
-
-	if err != nil {
-		return fmt.Errorf("unable to register bot commands: %w", err)
-	}
 
 	defer session.Close()
 
@@ -68,7 +64,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error
 	return nil
 }
 
-func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, cfg config.Config, dbPool *pgxpool.Pool) error {
+func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, cfg config.Config, dbPool *pgxpool.Pool) {
 	ping := newPingCommand()
 
 	command.RegisterGuildCommand(l, s, ping)
@@ -100,8 +96,6 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, c
 	}...)
 
 	command.RegisterTextCommands(l, s, textCommands)
-
-	return nil
 }
 
 func createBotLogger(logger *slog.Logger, session *discordgo.Session) *slog.Logger {
