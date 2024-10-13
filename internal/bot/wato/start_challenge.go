@@ -135,7 +135,7 @@ func validationErrEmbed(msg string) *discordgo.MessageEmbed {
 		Color:       0xff2821,
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "'Need help? Just type !wato",
-			IconURL: "https://i.imgur.com/DbxSPZy.png", // TODO: Probably should get this from somewhere else
+			IconURL: "https://i.imgur.com/DbxSPZy.png",
 		},
 	}
 }
@@ -154,7 +154,7 @@ func watoStatusEmbed(challenger, challenged *discordgo.User, status challengeSta
 		},
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "'Need help? Just type !wato",
-			IconURL: "https://i.imgur.com/DbxSPZy.png", // TODO: Probably should get this from somewhere else
+			IconURL: "https://i.imgur.com/DbxSPZy.png",
 		},
 	}
 }

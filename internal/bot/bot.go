@@ -87,6 +87,7 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, cfg config.Config
 
 	// WATO commands
 	textCommands = append(textCommands, []command.TextCommand{
+		wato.NewWatoHelpCommand(l, dbPool),
 		wato.NewWatoStartChallengeCommand(l, dbPool),
 		wato.NewWatoAcceptChallengeCommand(l, dbPool),
 		wato.NewWatoDeclineChallengeCommand(l, dbPool),

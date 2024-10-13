@@ -15,11 +15,6 @@ import (
 
 var validNumberRegex = regexp.MustCompile(`[-]?\d+(,\d+)*`)
 
-// TODO: helpCommand (basic help for the game, i.e. status)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-help.handler.ts
-// TODO: leaderBoardCommand (leaderboard for completed challenges)
-// - https://github.com/hammybot/hammy/blob/8797a5c0a2f1086f7086cf1b489eb65560197f6c/src/modules/wato/handlers/wato-lb.handler.ts
-
 // acceptChallengeCommand contains a text command that looks for a mention and a number,
 // checks for any challenges that the user may be responding to. If an active challenge is
 // found, the bet/status message will be updated and will send both players a DM requesting
@@ -149,7 +144,7 @@ func createDMEmbed(username string, betLimit int, c challenge) *discordgo.Messag
 		},
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "'Need help? Just type !wato",
-			IconURL: "https://i.imgur.com/DbxSPZy.png", // TODO: Probably should get this from somewhere else
+			IconURL: "https://i.imgur.com/DbxSPZy.png",
 		},
 	}
 }
