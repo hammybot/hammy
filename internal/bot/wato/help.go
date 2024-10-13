@@ -149,7 +149,7 @@ func waitingOnAuthorBetHelpEmbed() *discordgo.MessageEmbed {
 		Color: 0x1ed8f7,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name:  "**You need to respond with a bet to my DM! Just respond with a number.",
+				Name:  "**You need to respond with a bet to my DM! Just respond with a number.**",
 				Value: "`100`",
 			},
 		},
