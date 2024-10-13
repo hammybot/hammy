@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	cfg := config.CreateConfig()
+	cfg := config.NewConfig()
 
 	rootLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.Level(cfg.LogLevel),
@@ -33,8 +33,8 @@ func main() {
 		"go_arch", runtime.GOARCH,
 	)
 
-	if err := bot.RunBot(rootLogger, botSession, cfg); err != nil {
-		rootLogger.Error("fatal error starting bot", "err", err)
+	if rErr := bot.RunBot(rootLogger, botSession, cfg); rErr != nil {
+		rootLogger.Error("fatal error starting bot", "err", rErr)
 		os.Exit(1)
 	}
 }

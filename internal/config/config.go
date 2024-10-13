@@ -1,19 +1,21 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"log/slog"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	LlmUrl          string `mapstructure:"LLM_URL"`
-	ResponseEmoji   string `mapstructure:"RESPONSE_EMOJI"`
-	LogLevel        int    `mapstructure:"LOG_LEVEL"`
-	DiscordLogLevel int    `mapstructure:"DISCORD_LOG_LEVEL"`
-	BotToken        string `mapstructure:"DISCORD_BOT_TOKEN"`
+	LlmUrl          string        `mapstructure:"LLM_URL"`
+	ResponseEmoji   string        `mapstructure:"RESPONSE_EMOJI"`
+	LogLevel        int           `mapstructure:"LOG_LEVEL"`
+	DiscordLogLevel int           `mapstructure:"DISCORD_LOG_LEVEL"`
+	BotToken        string        `mapstructure:"DISCORD_BOT_TOKEN"`
+	KeepAlive       time.Duration `mapstructure:"OLLAMA_KEEP_ALIVE"`
 
 	DBHost     string `mapstructure:"POSTGRES_HOST"`
 	DBPort     string `mapstructure:"POSTGRES_PORT"`
@@ -24,11 +26,14 @@ type Config struct {
 	DisableLLM bool `mapstructure:"DISABLE_LLM"`
 }
 
-func CreateConfig() Config {
+func NewConfig() Config {
+	var cfg Config
+
 	viper.SetDefault("ResponseEmoji", "\U0001F914")
 	viper.SetDefault("DISCORD_LOG_LEVEL", discordgo.LogWarning)
 	viper.SetDefault("LOG_LEVEL", slog.LevelDebug)
 	viper.SetDefault("LLM_URL", "http://localhost:11434")
+	viper.SetDefault("OLLAMA_KEEP_ALIVE", 15*time.Minute)
 	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
 	_ = viper.BindEnv("POSTGRES_HOST")
 	_ = viper.BindEnv("POSTGRES_PORT")
@@ -38,11 +43,9 @@ func CreateConfig() Config {
 	_ = viper.BindEnv("DISABLE_LLM")
 	viper.AutomaticEnv()
 
-	var cfg Config
-
 	err := viper.Unmarshal(&cfg)
 	if err != nil {
-		panic(fmt.Sprintf("unable to decode config, %s", err.Error()))
+		log.Fatalf("unable to decode config, %v", err)
 	}
 
 	return cfg

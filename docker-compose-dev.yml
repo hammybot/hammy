@@ -21,8 +21,6 @@ services:
     restart: no
     ports:
       - "11434:11434"
-    environment:
-      OLLAMA_KEEP_ALIVE: 30m
 
 #  chroma:
 #    container_name: chroma

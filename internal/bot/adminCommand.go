@@ -77,6 +77,10 @@ func isAuthorAdmin(s *discordgo.Session, m discordgo.Message) bool {
 		if err != nil {
 			return false
 		}
+		if roles == nil {
+			return false
+		}
+
 		for _, role := range roles {
 			if role.ID == rId && (role.Permissions&discordgo.PermissionAdministrator) != 0 {
 				return true

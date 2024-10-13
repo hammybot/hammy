@@ -18,6 +18,17 @@ import (
 func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error {
 	ctx := context.Background()
 
+	var model *llm.LLM
+	if !cfg.DisableLLM {
+		//create llm first, this is initializing the models so it can take some time to come online
+		llmModel, llmErr := llm.NewLLM(l, cfg)
+		if llmErr != nil {
+			return fmt.Errorf("unable to create llm: %w", llmErr)
+		}
+
+		model = llmModel
+	}
+
 	l.Info("opening session and starting bot")
 	err := session.Open()
 	if err != nil {
@@ -37,7 +48,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error
 
 	defer dbpool.Close()
 
-	err = registerBotCommands(logger, session, cfg, dbpool)
+	err = registerBotCommands(logger, session, model, cfg, dbpool)
 	_ = session.UpdateStatusComplex(discordgo.UpdateStatusData{
 		AFK: false,
 	})
@@ -57,7 +68,7 @@ func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error
 	return nil
 }
 
-func registerBotCommands(l *slog.Logger, s *discordgo.Session, cfg config.Config, dbPool *pgxpool.Pool) error {
+func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, cfg config.Config, dbPool *pgxpool.Pool) error {
 	ping := newPingCommand()
 
 	command.RegisterGuildCommand(l, s, ping)
@@ -67,12 +78,6 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, cfg config.Config
 
 	// LLM commands
 	if !cfg.DisableLLM {
-		//create llm first, this is initializing the models so it can take some time to come online
-		model, llmErr := llm.NewLLM(l, cfg.LlmUrl)
-		if llmErr != nil {
-			return fmt.Errorf("unable to create llm: %w", llmErr)
-		}
-
 		adminCommands := newAdminCommand(l, model)
 		analyze := newSummarizeCommand(l, model)
 		chat := newChatCommand(l, model)
