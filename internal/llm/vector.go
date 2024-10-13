@@ -7,9 +7,9 @@ import (
 	"github.com/tmc/langchaingo/vectorstores/chroma"
 )
 
-type meta = map[string]any
+type meta = map[string]any //nolint:unused
 
-func newVectorStore(llm *ollama.LLM) (chroma.Store, error) {
+func newVectorStore(llm *ollama.LLM) (chroma.Store, error) { //nolint:unused
 	embedder, err := embeddings.NewEmbedder(llm)
 	if err != nil {
 		panic(err)
@@ -23,7 +23,7 @@ func newVectorStore(llm *ollama.LLM) (chroma.Store, error) {
 	)
 }
 
-func batchDocuments(documents []schema.Document, batchSize int) [][]schema.Document {
+func batchDocuments(documents []schema.Document, batchSize int) [][]schema.Document { //nolint:unused
 	var batches [][]schema.Document
 	for i := 0; i < len(documents); i += batchSize {
 		end := i + batchSize

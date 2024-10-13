@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/austinvalle/hammy/internal/bot"
-	"github.com/austinvalle/hammy/internal/config"
-	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"os"
 	"runtime"
+
+	"github.com/austinvalle/hammy/internal/bot"
+	"github.com/austinvalle/hammy/internal/config"
+	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
@@ -38,18 +39,18 @@ func main() {
 	}
 }
 
-func createDiscordSession(config config.Config) (*discordgo.Session, error) {
+func createDiscordSession(cfg config.Config) (*discordgo.Session, error) {
 
-	if config.BotToken == "" {
+	if cfg.BotToken == "" {
 		return nil, fmt.Errorf("DISCORD_BOT_TOKEN environment variable not found")
 	}
 
-	session, err := discordgo.New(fmt.Sprintf("Bot %s", config.BotToken))
+	session, err := discordgo.New(fmt.Sprintf("Bot %s", cfg.BotToken))
 	if err != nil {
 		return nil, err
 	}
 
-	session.LogLevel = config.DiscordLogLevel
+	session.LogLevel = cfg.DiscordLogLevel
 
 	return session, nil
 }

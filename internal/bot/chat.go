@@ -3,12 +3,13 @@ package bot
 import (
 	"context"
 	"fmt"
-	"github.com/austinvalle/hammy/internal/llm"
-	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"math/rand"
 	"slices"
 	"strings"
+
+	"github.com/austinvalle/hammy/internal/llm"
+	"github.com/bwmarrin/discordgo"
 )
 
 // todo: implement
@@ -28,7 +29,7 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 	safeChannels := []string{"real-talk", "admin", "reaction-roles", "trip-planning-war-room"}
 	channel, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		c.logger.Error("could not get channel details from state", err)
+		c.logger.Error("could not get channel details from state", "err", err)
 		return false
 	}
 	if slices.Contains(safeChannels, channel.Name) {
@@ -37,7 +38,7 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 	}
 
 	if ok, rErr := isHammyMentioned(s, m); rErr != nil {
-		c.logger.Error("error checking mentions", rErr)
+		c.logger.Error("error checking mentions", "err", rErr)
 	} else if ok {
 		return true
 	}

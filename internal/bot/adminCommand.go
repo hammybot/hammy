@@ -3,21 +3,17 @@ package bot
 import (
 	"context"
 	"fmt"
-	"github.com/austinvalle/hammy/internal/llm"
-	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"regexp"
 	"slices"
 	"strconv"
+
+	"github.com/austinvalle/hammy/internal/llm"
+	"github.com/bwmarrin/discordgo"
 )
 
-var tempCommand *regexp.Regexp
-var getSettingsCommand *regexp.Regexp
-
-func init() {
-	tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
-	getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
-}
+var tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
+var getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
 
 type adminCommand struct {
 	logger *slog.Logger
