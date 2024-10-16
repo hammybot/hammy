@@ -52,10 +52,12 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM) {
 	adminCommands := newAdminCommand(l, model)
 	analyze := newSummarizeCommand(l, model)
 	chat := newChatCommand(l, model)
+	art := newImageCommand(l, model)
 
 	//order matters they are checked in order
 	textCommands := []command.TextCommand{
 		adminCommands,
+		art,
 		analyze,
 		chat,
 	}

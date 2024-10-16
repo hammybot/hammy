@@ -7,7 +7,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"os"
-	"runtime"
 )
 
 func main() {
@@ -23,14 +22,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	info := getBinaryInfo()
-	rootLogger.Info(
-		"hammy started",
-		"version", info.Version,
-		"commit", info.Commit,
-		"go_os", runtime.GOOS,
-		"go_arch", runtime.GOARCH,
-	)
+	//info := getBinaryInfo()
+	//rootLogger.Info(
+	//	"hammy started",
+	//	"version", info.Version,
+	//	"commit", info.Commit,
+	//	"go_os", runtime.GOOS,
+	//	"go_arch", runtime.GOARCH,
+	//)
 
 	if rErr := bot.RunBot(rootLogger, botSession, cfg); rErr != nil {
 		rootLogger.Error("fatal error starting bot", "err", rErr)

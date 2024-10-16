@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -10,8 +11,12 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"text/template"
 	"time"
 )
+
+//go:embed analyze.tpl
+var analyzeTemplate string
 
 const (
 	hammy = "hammy"
@@ -24,36 +29,38 @@ type Settings struct {
 
 type LLM struct {
 	logger      *slog.Logger
-	hammy       syncClient
+	ollama      ollamaClient
 	temperature float32
+	dezgoToken  string
 }
 
-type syncClient interface {
-	chat(ctx context.Context, messages []string, opts ...Options) (string, error)
-	generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error)
+type ollamaClient interface {
+	chat(ctx context.Context, modelName string, messages []string, opts ...Options) (string, error)
+	generate(ctx context.Context, modelName string, prompt string, opts ...Options) (string, error)
 }
 
 func NewLLM(logger *slog.Logger, cfg config.Config) (*LLM, error) {
-	client, err := newSyncClientImpl(hammy, cfg, logger)
+	client, err := newSyncClientImpl(cfg, logger)
 	if err != nil {
-		return nil, fmt.Errorf("new client error: %w", err)
+		return nil, fmt.Errorf("new c error: %w", err)
 	}
 
-	logger.Info("configuring llm")
+	logger.Info("configuring models")
 	if cErr := client.configure(context.Background()); cErr != nil {
 		return nil, fmt.Errorf("configure error: %w", cErr)
 	}
 
 	logger.Info("getting temperature")
-	temp, err := client.getTemperature(context.Background())
+	temp, err := client.getTemperature(context.Background(), hammy)
 	if err != nil {
 		return nil, fmt.Errorf("get temperature error: %w", err)
 	}
 
 	return &LLM{
 		logger:      logger,
-		hammy:       client,
+		ollama:      client,
 		temperature: temp,
+		dezgoToken:  cfg.DezgoToken,
 	}, nil
 }
 
@@ -64,10 +71,17 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 	}
 	l.logger.Debug("retrieved website content", "content", content)
 
-	systemMsg := fmt.Sprintf(
-		`You are a friendly Discord bot named hammy and you are being asked a question about the following content pulled from a website. You are responding directly to the user who asked the question, use "%s" to mention them in discord.
-		Read the content and answer the following user question. If they say "analyze", or are only giving you a url just provide a simple summary of it. You can disregard any images and extra stuff that is not related to the content of the article itself.
-		%s`, message.Author.Mention(), content)
+	data := struct {
+		mention string
+		content string
+		prompt  string
+	}{
+		mention: message.Author.Mention(),
+		content: content,
+		prompt:  message.Content,
+	}
+
+	prompt, err := useTemplate(analyzeTemplate, data)
 
 	t := time.Now()
 
@@ -76,7 +90,7 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 		l.logger.Info("llm call completed", "elapsed", elapsed)
 	}(t)
 
-	return l.hammy.generate(ctx, systemMsg, message.Content, WithTemperature(l.temperature))
+	return l.ollama.generate(ctx, hammy, prompt, WithTemperature(l.temperature))
 }
 
 func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
@@ -90,7 +104,7 @@ func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, 
 		content := strings.ReplaceAll(message.Content, "\n", "")
 		msgs = append(msgs, fmt.Sprintf("%s:\"%s\"", author, content))
 	}
-	return l.hammy.chat(ctx, msgs, WithTemperature(l.temperature))
+	return l.ollama.chat(ctx, hammy, msgs, WithTemperature(l.temperature))
 }
 
 func (l *LLM) SetTemperature(temp float32) {
@@ -117,4 +131,18 @@ func extractContent(ctx context.Context, url string) (string, error) {
 	}
 
 	return fallbackResult, nil
+}
+
+func useTemplate[T any](t string, data T) (string, error) {
+	tpl, err := template.New("chat").Parse(t)
+	if err != nil {
+		return "", fmt.Errorf("error loading template: %w", err)
+	}
+	var promptBuffer bytes.Buffer
+
+	if err = tpl.Execute(&promptBuffer, data); err != nil {
+		return "", fmt.Errorf("error executing template: %w", err)
+	}
+
+	return promptBuffer.String(), nil
 }
