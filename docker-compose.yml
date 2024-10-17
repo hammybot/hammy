@@ -21,7 +21,7 @@ services:
       PG_PASSWORD: ${PG_PASSWORD}
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       LOG_LEVEL: ${LOG_LEVEL}
-      LLM_URL: http://host.docker.internal:11434
+      LLM_URL: ${LLM_URL}
 
 networks:
   hammy:
