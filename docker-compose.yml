@@ -22,7 +22,7 @@ services:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       LOG_LEVEL: ${LOG_LEVEL}
       LLM_URL: ${LLM_URL}
-
+      DEZGO_TOKEN: ${DEZGO_TOKEN}
 networks:
   hammy:
     driver: bridge
