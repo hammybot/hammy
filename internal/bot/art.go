@@ -34,9 +34,9 @@ func (c *imageCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bo
 }
 
 func (c *imageCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
-	if err := s.MessageReactionAdd(m.ChannelID, m.ID, ":paintbrush:"); err != nil {
-		c.logger.Error("error adding reaction: ", err)
-	}
+	//if err := s.MessageReactionAdd(m.ChannelID, m.ID, ":paintbrush:"); err != nil {
+	//	c.logger.Error("error adding reaction: ", "err", err)
+	//}
 
 	prompt, ok := strings.CutPrefix(m.Content, "!art ")
 
