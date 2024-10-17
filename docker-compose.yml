@@ -16,34 +16,12 @@ services:
       dockerfile: Dockerfile
     networks:
       - hammy
-    depends_on:
-      - ollama
     restart: unless-stopped
     environment:
       PG_PASSWORD: ${PG_PASSWORD}
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       LOG_LEVEL: ${LOG_LEVEL}
-      LLM_URL: http://ollama:11434
-
-  ollama:
-    container_name: ollama
-    image: ollama/ollama:latest
-    restart: unless-stopped
-    networks:
-      - hammy
-    ports:
-      - "11434:11434"
-    volumes:
-      - /etc/ollama:/root/.ollama
-    environment:
-      OLLAMA_KEEP_ALIVE: 2h
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: ["gpu"]
-              count: all
+      LLM_URL: http://host.docker.internal:11434
 
 networks:
   hammy:
