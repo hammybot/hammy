@@ -1,7 +1,6 @@
 package llm
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 
 	"github.com/austinvalle/hammy/internal/config"
 	"github.com/ollama/ollama/api"
