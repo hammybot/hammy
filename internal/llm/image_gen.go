@@ -25,17 +25,17 @@ type ImageRequestPayload struct {
 
 func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) {
 	// Attempt to generate enriched prompt
-	ePrompt, err := l.ollama.generate(ctx, promptGeneratorModel, prompt)
-	if err != nil {
-		l.logger.Warn("error generating enriched prompt, falling back to original", "original prompt", prompt, "error", err)
-		ePrompt = prompt
-	} else {
-		l.logger.Info("generated enriched prompt", "original prompt", prompt, "enriched prompt", ePrompt)
-	}
+	//ePrompt, err := l.ollama.generate(ctx, promptGeneratorModel, prompt)
+	//if err != nil {
+	//	l.logger.Warn("error generating enriched prompt, falling back to original", "original prompt", prompt, "error", err)
+	//	ePrompt = prompt
+	//} else {
+	//	l.logger.Info("generated enriched prompt", "original prompt", prompt, "enriched prompt", ePrompt)
+	//}
 
 	payload := ImageRequestPayload{
 		Steps:  30,
-		Prompt: ePrompt,
+		Prompt: prompt, //ePrompt,
 		Model:  dezgoModel,
 		Format: "jpg",
 	}
