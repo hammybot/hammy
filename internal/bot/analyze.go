@@ -3,14 +3,15 @@ package bot
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"regexp"
+	"strings"
+
 	"github.com/austinvalle/hammy/internal/command"
 	"github.com/austinvalle/hammy/internal/llm"
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
-	"log/slog"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -36,7 +37,7 @@ func (c *summarizeCommand) CanActivate(s *discordgo.Session, m discordgo.Message
 	urlRegex := regexp.MustCompile(urlPattern)
 
 	if mentioned, err := isHammyMentioned(s, m); err != nil {
-		c.logger.Error("error checking mentions", err)
+		c.logger.Error("error checking mentions", "err", err)
 	} else if !mentioned {
 		return false
 	}
@@ -55,7 +56,7 @@ func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m 
 	//todo: dont rawdog viper
 	emoji := viper.GetString("ResponseEmoji")
 	if err := s.MessageReactionAdd(m.ChannelID, m.ID, emoji); err != nil {
-		c.logger.Error("error adding reaction: ", err)
+		c.logger.Error("error adding reaction: ", "err", err)
 	}
 
 	urlRegex := regexp.MustCompile(urlPattern)
@@ -82,14 +83,14 @@ func (c *summarizeCommand) Handler(ctx context.Context, s *discordgo.Session, m 
 
 	response, err := c.llm.Analyze(ctx, url, m)
 	if err != nil {
-		c.logger.Error("error in analyzing message", err)
+		c.logger.Error("error in analyzing message", "err", err)
 		return nil, err
 	}
 	if removeError := s.MessageReactionRemove(m.ChannelID, m.ID, emoji, "@me"); removeError != nil {
-		c.logger.Error("error removing reaction", removeError)
+		c.logger.Error("error removing reaction", "err", removeError)
 	}
 	return &discordgo.MessageSend{
-		Content: fmt.Sprintf(response),
+		Content: response,
 	}, nil
 
 }

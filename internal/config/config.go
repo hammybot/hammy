@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"github.com/spf13/viper"
 	"log"
 	"log/slog"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -16,6 +17,14 @@ type Config struct {
 	BotToken        string        `mapstructure:"DISCORD_BOT_TOKEN"`
 	KeepAlive       time.Duration `mapstructure:"OLLAMA_KEEP_ALIVE"`
 	DezgoToken      string        `mapstructure:"DEZGO_TOKEN"`
+
+	DBHost     string `mapstructure:"POSTGRES_HOST"`
+	DBPort     string `mapstructure:"POSTGRES_PORT"`
+	DBName     string `mapstructure:"POSTGRES_DB"`
+	DBUser     string `mapstructure:"POSTGRES_USER"`
+	DBPassword string `mapstructure:"POSTGRES_PASSWORD"`
+
+	DisableLLM bool `mapstructure:"DISABLE_LLM"`
 }
 
 func NewConfig() Config {
@@ -28,6 +37,12 @@ func NewConfig() Config {
 	viper.SetDefault("OLLAMA_KEEP_ALIVE", 15*time.Minute)
 	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
 	_ = viper.BindEnv("DEZGO_TOKEN")
+	_ = viper.BindEnv("POSTGRES_HOST")
+	_ = viper.BindEnv("POSTGRES_PORT")
+	_ = viper.BindEnv("POSTGRES_DB")
+	_ = viper.BindEnv("POSTGRES_USER")
+	_ = viper.BindEnv("POSTGRES_PASSWORD")
+	_ = viper.BindEnv("DISABLE_LLM")
 	viper.AutomaticEnv()
 
 	err := viper.Unmarshal(&cfg)

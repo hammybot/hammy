@@ -3,8 +3,9 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"log/slog"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type DiscordChannelRetriever interface {
@@ -38,8 +39,11 @@ func RegisterTextCommands(l *slog.Logger, s *discordgo.Session, tc []TextCommand
 						l.Error("error sending message", "error", sendErr)
 					}
 				}
-				if _, sendErr := s.ChannelMessageSendComplex(m.ChannelID, reply); sendErr != nil {
-					l.Error("error sending message", "error", sendErr)
+
+				if reply != nil {
+					if _, sendErr := s.ChannelMessageSendComplex(m.ChannelID, reply); sendErr != nil {
+						l.Error("error sending message", "error", sendErr)
+					}
 				}
 				// stop processing future commands
 				break

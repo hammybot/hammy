@@ -1,11 +1,10 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/austinvalle/hammy/internal/config"
-	"github.com/ollama/ollama/api"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -14,6 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
+
+	"github.com/austinvalle/hammy/internal/config"
+	"github.com/ollama/ollama/api"
 )
 
 //go:embed models/hammy.modelfile
@@ -24,7 +27,7 @@ var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
 const maxTokens = 128000 - 515 - 4096
-const modelDir = "/hammy/models"
+const modelDir = "/hammy/models" // nolint:unused
 
 type Options func(opts map[string]any)
 
@@ -48,7 +51,7 @@ func newSyncClientImpl(cfg config.Config, logger *slog.Logger) (*syncClientImpl,
 		return nil, err
 	}
 
-	//todo: should we use retry c?
+	//todo: should we use retry client?
 	c := api.NewClient(base, http.DefaultClient)
 
 	if hErr := c.Heartbeat(context.Background()); hErr != nil {
