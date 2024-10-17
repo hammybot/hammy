@@ -16,6 +16,7 @@ type Config struct {
 	DiscordLogLevel int           `mapstructure:"DISCORD_LOG_LEVEL"`
 	BotToken        string        `mapstructure:"DISCORD_BOT_TOKEN"`
 	KeepAlive       time.Duration `mapstructure:"OLLAMA_KEEP_ALIVE"`
+	DezgoToken      string        `mapstructure:"DEZGO_TOKEN"`
 
 	DBHost     string `mapstructure:"POSTGRES_HOST"`
 	DBPort     string `mapstructure:"POSTGRES_PORT"`
@@ -35,6 +36,7 @@ func NewConfig() Config {
 	viper.SetDefault("LLM_URL", "http://localhost:11434")
 	viper.SetDefault("OLLAMA_KEEP_ALIVE", 15*time.Minute)
 	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
+	_ = viper.BindEnv("DEZGO_TOKEN")
 	_ = viper.BindEnv("POSTGRES_HOST")
 	_ = viper.BindEnv("POSTGRES_PORT")
 	_ = viper.BindEnv("POSTGRES_DB")
