@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "kb/art"
 
 jobs:
   deploy:
@@ -28,6 +27,7 @@ jobs:
           DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
           LLM_URL: ${{secrets.LLM_URL}}
           DEZGO_TOKEN: ${{secrets.DEZGO_TOKEN}}
+
         run: |
           docker compose up --build hammy -d
 
