@@ -19,7 +19,7 @@ jobs:
 
       - name: Stop existing containers
         run: |
-          docker compose down
+          docker compose down >> /dev/null
 
       - name: Build and Start new containers
         env:
