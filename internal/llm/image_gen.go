@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 // take text, send to stable-diffusion prompt generator. Take that response and send to dezgo
@@ -24,6 +25,9 @@ type ImageRequestPayload struct {
 }
 
 func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
+	defer cancel()
+
 	// Attempt to generate enriched prompt
 	//ePrompt, err := l.ollama.generate(ctx, promptGeneratorModel, prompt)
 	//if err != nil {
@@ -45,7 +49,7 @@ func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) 
 		return nil, fmt.Errorf("failed to marshal JSON payload: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, dezgoUrl+"/text2image", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, dezgoUrl+"/text2image", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
