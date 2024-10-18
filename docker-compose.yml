@@ -1,5 +1,5 @@
 services:
-  db:
+  database:
     image: postgres
     restart: always
     shm_size: 128mb
