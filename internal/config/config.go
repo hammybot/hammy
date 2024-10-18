@@ -42,7 +42,7 @@ func NewConfig() Config {
 	_ = viper.BindEnv("POSTGRES_DB")
 	_ = viper.BindEnv("POSTGRES_USER")
 	_ = viper.BindEnv("POSTGRES_PASSWORD")
-	_ = viper.BindEnv("DISABLE_LLM")
+	viper.SetDefault("DISABLE_LLM", false)
 	viper.AutomaticEnv()
 
 	err := viper.Unmarshal(&cfg)

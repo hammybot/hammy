@@ -70,7 +70,9 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, c
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
 
-	textCommands := make([]command.TextCommand, 0)
+	help := newHelpCommand()
+
+	textCommands := []command.TextCommand{help}
 
 	// LLM commands
 	if !cfg.DisableLLM {
