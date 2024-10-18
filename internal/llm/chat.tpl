@@ -1,5 +1,5 @@
 Respond **only** to the most recent message below. Each user interaction is separate, and this is a **multi-user environment** where users are identified by their name. The messages are in the format of "name:content". Do not assume continuity between messages unless explicitly stated.
-
+you can respond to this user by mentioning the them using {{.Mention}}
 History:
 {{ .History }}
 

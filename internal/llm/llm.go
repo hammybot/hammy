@@ -35,7 +35,7 @@ type LLM struct {
 }
 
 type ollamaClient interface {
-	chat(ctx context.Context, modelName string, messages []string, opts ...Options) (string, error)
+	chat(ctx context.Context, modelName string, message string, mention string, history []string, opts ...Options) (string, error)
 	generate(ctx context.Context, modelName string, prompt string, opts ...Options) (string, error)
 }
 
@@ -93,10 +93,11 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 	return l.ollama.generate(ctx, hammy, prompt, WithTemperature(l.temperature))
 }
 
-func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, error) {
-	slices.Reverse(messages)
+func (l *LLM) Chat(ctx context.Context, m *discordgo.Message, history []*discordgo.Message) (string, error) {
+	slices.Reverse(history)
+
 	msgs := make([]string, 0)
-	for _, message := range messages {
+	for _, message := range history {
 		author := message.Author.Username
 		if message.Author.Bot {
 			author = "you"
@@ -104,7 +105,8 @@ func (l *LLM) Chat(ctx context.Context, messages []*discordgo.Message) (string, 
 		content := strings.ReplaceAll(message.Content, "\n", "")
 		msgs = append(msgs, fmt.Sprintf("%s:\"%s\"", author, content))
 	}
-	return l.ollama.chat(ctx, hammy, msgs, WithTemperature(l.temperature))
+	latest := fmt.Sprintf("%s:%s", m.Author, m.Content)
+	return l.ollama.chat(ctx, hammy, latest, m.Author.Mention(), msgs, WithTemperature(l.temperature))
 }
 
 func (l *LLM) SetTemperature(temp float32) {

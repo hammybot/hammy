@@ -58,7 +58,7 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 		return nil, err
 	}
 
-	resp, err := c.llm.Chat(ctx, msgs)
+	resp, err := c.llm.Chat(ctx, m.Message, msgs)
 	if err != nil {
 		return nil, err
 	}
