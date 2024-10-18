@@ -1,13 +1,20 @@
 services:
   db:
-    container_name: db
     image: postgres
     restart: always
     shm_size: 128mb
     networks:
       - hammy
     environment:
-      PG_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+      # Initialize the database on first create
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
 
   hammy:
     container_name: hammy
@@ -16,35 +23,15 @@ services:
       dockerfile: Dockerfile
     networks:
       - hammy
-    depends_on:
-      - ollama
     restart: unless-stopped
     environment:
-      PG_PASSWORD: ${PG_PASSWORD}
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       LOG_LEVEL: ${LOG_LEVEL}
-      LLM_URL: http://ollama:11434
-
-  ollama:
-    container_name: ollama
-    image: ollama/ollama:latest
-    restart: unless-stopped
-    networks:
-      - hammy
-    ports:
-      - "11434:11434"
-    volumes:
-      - /etc/ollama:/root/.ollama
-    environment:
-      OLLAMA_KEEP_ALIVE: 2h
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: ["gpu"]
-              count: all
-
+      LLM_URL: ${LLM_URL}
+      DEZGO_TOKEN: ${DEZGO_TOKEN}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 networks:
   hammy:
     driver: bridge

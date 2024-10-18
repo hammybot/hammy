@@ -70,17 +70,21 @@ func registerBotCommands(l *slog.Logger, s *discordgo.Session, model *llm.LLM, c
 	command.RegisterGuildCommand(l, s, ping)
 	command.RegisterInteractionCreate(l, s, ping)
 
-	textCommands := make([]command.TextCommand, 0)
+	help := newHelpCommand()
+
+	textCommands := []command.TextCommand{help}
 
 	// LLM commands
 	if !cfg.DisableLLM {
 		adminCommands := newAdminCommand(l, model)
 		analyze := newSummarizeCommand(l, model)
 		chat := newChatCommand(l, model)
+		art := newImageCommand(l, model)
 
 		//order matters they are checked in order
 		textCommands = append(textCommands, []command.TextCommand{
 			adminCommands,
+			art,
 			analyze,
 			chat,
 		}...)

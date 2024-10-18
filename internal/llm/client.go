@@ -1,7 +1,6 @@
 package llm
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 
 	"github.com/austinvalle/hammy/internal/config"
 	"github.com/ollama/ollama/api"
@@ -39,14 +37,13 @@ func WithTemperature(t float32) Options {
 
 // syncClientImpl is a synchronous wrapper for an ollama model
 type syncClientImpl struct {
-	modelName string
-	client    *api.Client
+	c         *api.Client
 	logger    *slog.Logger
 	keepAlive *api.Duration
 }
 
 // todo: use metrics from response to debug log, summary writes to stderr for some reason.
-func newSyncClientImpl(modelName string, cfg config.Config, logger *slog.Logger) (*syncClientImpl, error) {
+func newSyncClientImpl(cfg config.Config, logger *slog.Logger) (*syncClientImpl, error) {
 	base, err := url.Parse(cfg.LlmUrl)
 	if err != nil {
 		return nil, err
@@ -60,15 +57,14 @@ func newSyncClientImpl(modelName string, cfg config.Config, logger *slog.Logger)
 	}
 
 	return &syncClientImpl{
-		modelName: modelName,
-		client:    c,
+		c:         c,
 		logger:    logger,
 		keepAlive: &api.Duration{Duration: cfg.KeepAlive},
 	}, nil
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Options) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, modelName string, msgs []string, opts ...Options) (string, error) {
 	stream := false
 	options := map[string]any{}
 
@@ -94,7 +90,7 @@ func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Option
 	}
 
 	req := &api.GenerateRequest{
-		Model:     s.modelName,
+		Model:     modelName,
 		Prompt:    prompt,
 		Options:   options,
 		Stream:    &stream,
@@ -103,7 +99,7 @@ func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Option
 
 	var response string
 
-	cErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
+	cErr := s.c.Generate(ctx, req, func(r api.GenerateResponse) error {
 		response = r.Response
 		return nil
 	})
@@ -115,8 +111,8 @@ func (s *syncClientImpl) chat(ctx context.Context, msgs []string, opts ...Option
 	return response, nil
 }
 
-// Generate calls generate with the model without streaming. systemMessage overrides the modelfile system message.
-func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, prompt string, opts ...Options) (string, error) {
+// Generate calls generate with the model without streaming.
+func (s *syncClientImpl) generate(ctx context.Context, modelName string, prompt string, opts ...Options) (string, error) {
 	var response string
 	options := map[string]any{}
 
@@ -126,25 +122,24 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 
 	truncatedPrompt := prompt
 
-	systemCount := getTokenCount(systemMessage)
 	promptCount := getTokenCount(truncatedPrompt)
 
-	//if we are too long, lets cut off the end of the prompt instead (right now this is used for article analysis, not ideal but better than the top
-	if promptCount+systemCount > maxTokens {
-		truncatedPrompt = truncatePrompt(prompt, maxTokens-systemCount)
+	//todo: When writing this, the only area using generate is hammy analyze, so we are cutting the end because it has the content
+	//if this starts getting used more, we probably dont always want to truncate the end
+	if promptCount > maxTokens {
+		truncatedPrompt = truncatePrompt(prompt, maxTokens)
 	}
 
 	stream := false
 	req := &api.GenerateRequest{
-		Model:     s.modelName,
-		System:    systemMessage,
 		Prompt:    truncatedPrompt,
+		Model:     modelName,
 		Stream:    &stream,
 		Options:   options,
 		KeepAlive: s.keepAlive,
 	}
 
-	gErr := s.client.Generate(ctx, req, func(r api.GenerateResponse) error {
+	gErr := s.c.Generate(ctx, req, func(r api.GenerateResponse) error {
 		response = r.Response
 		//todo: temporary
 		r.Summary()
@@ -158,11 +153,12 @@ func (s *syncClientImpl) generate(ctx context.Context, systemMessage string, pro
 	return response, nil
 }
 
-func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
+func (s *syncClientImpl) getTemperature(ctx context.Context, modelName string) (float32, error) {
 	r := regexp.MustCompile(`temperature\s*(?P<temp>\d\.?\d)`)
-	resp, err := s.client.Show(ctx, &api.ShowRequest{
-		Model: hammy,
+	resp, err := s.c.Show(ctx, &api.ShowRequest{
+		Model: modelName,
 	})
+
 	if err != nil {
 		return 0, fmt.Errorf("show: %w", err)
 	}
@@ -182,6 +178,102 @@ func (s *syncClientImpl) getTemperature(ctx context.Context) (float32, error) {
 		}
 	}
 	return 0, fmt.Errorf("could not find temperature")
+}
+
+// configure creates hammy in ollama on start and returns when complete.
+// This is a workaround to make sure that the model file is up to date whenever we deploy to main
+func (s *syncClientImpl) configure(ctx context.Context) error {
+	s.logger.Info("configure start")
+	models, err := s.c.List(ctx)
+	if err != nil {
+		return fmt.Errorf("error listing models: %w", err)
+	}
+	if slices.ContainsFunc(models.Models, func(m api.ListModelResponse) bool {
+		return m.Name == hammy
+	}) {
+		s.logger.Info("cleaning up old hammy model")
+		dErr := s.c.Delete(ctx, &api.DeleteRequest{
+			Model: hammy,
+		})
+		if dErr != nil {
+			return dErr
+		}
+	}
+
+	cr := []*api.CreateRequest{
+		{Model: hammy, Modelfile: hammyModelFile},
+	}
+
+	if cErr := s.createModels(ctx, cr); cErr != nil {
+		return err
+	}
+
+	if pErr := s.pullModels(ctx, []string{promptGeneratorModel}); pErr != nil {
+		return pErr
+	}
+
+	s.logger.Info("configure done")
+	return nil
+}
+
+func (s *syncClientImpl) createModels(ctx context.Context, reqs []*api.CreateRequest) error {
+	stream := false
+	wg := sync.WaitGroup{}
+
+	for _, req := range reqs {
+		req.Stream = &stream
+
+		wg.Add(1)
+		s.logger.Info("creating new model", "model", req.Model)
+		err := s.c.Create(ctx, req, s.handleProgress(ctx, &wg, req.Model))
+
+		wg.Wait()
+		if err != nil {
+			return fmt.Errorf("error creating %s model: %w", req.Model, err)
+		}
+	}
+
+	return nil
+}
+
+func (s *syncClientImpl) pullModels(ctx context.Context, modelNames []string) error {
+	stream := false
+	wg := sync.WaitGroup{}
+
+	for _, model := range modelNames {
+		req := &api.PullRequest{Model: model, Stream: &stream}
+		wg.Add(1)
+		s.logger.Info("pulling model", "model", req.Model)
+		err := s.c.Pull(ctx, req, s.handleProgress(ctx, &wg, model))
+
+		wg.Wait()
+		if err != nil {
+			return fmt.Errorf("error pulling %s model: %w", req.Model, err)
+		}
+	}
+
+	return nil
+}
+
+func (s *syncClientImpl) handleProgress(ctx context.Context, wg *sync.WaitGroup, reqModel string) func(api.ProgressResponse) error {
+	return func(r api.ProgressResponse) error {
+		args := []slog.Attr{
+			slog.String("status", r.Status),
+			slog.String("model", reqModel),
+		}
+
+		if r.Total != 0 {
+			percent := int(float64(r.Completed) / float64(r.Total) * 100)
+			args = append(args, slog.Int("percent", percent))
+		}
+
+		s.logger.LogAttrs(ctx, slog.LevelDebug, "processing model", args...)
+
+		if r.Status == "success" {
+			wg.Done()
+		}
+		return nil
+	}
 }
 
 func filterMessages(max int, messages []string) []string {
@@ -230,71 +322,4 @@ func truncatePrompt(prompt string, maxTokens int) string {
 
 	// `high` should be the length of the prompt that fits within maxTokens
 	return prompt[:high]
-}
-
-// configure creates hammy in ollama on start and returns when complete.
-// This is a workaround to make sure that the model file is up to date whenever we deploy to main
-func (s *syncClientImpl) configure(ctx context.Context) error {
-	stream := false
-	models, err := s.client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("error listing models: %w", err)
-	}
-	if slices.ContainsFunc(models.Models, func(m api.ListModelResponse) bool {
-		return m.Name == hammy
-	}) {
-		s.logger.Info("cleaning up old hammy model")
-		dErr := s.client.Delete(ctx, &api.DeleteRequest{
-			Model: hammy,
-		})
-		if dErr != nil {
-			return dErr
-		}
-	}
-
-	req := &api.CreateRequest{
-		Model:     hammy,
-		Modelfile: hammyModelFile,
-		Stream:    &stream,
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	pErr := s.client.Create(ctx, req, func(r api.ProgressResponse) error {
-		args := []slog.Attr{
-			slog.String("status", r.Status),
-		}
-
-		if r.Total != 0 {
-			percent := int(float64(r.Completed) / float64(r.Total) * 100)
-			args = append(args, slog.Int("percent", percent))
-		}
-
-		s.logger.LogAttrs(ctx, slog.LevelDebug, "creating hammy model", args...)
-
-		if r.Status == "success" {
-			wg.Done()
-		}
-		return nil
-	})
-
-	if pErr != nil {
-		return fmt.Errorf("pull: %w", pErr)
-	}
-	wg.Wait()
-	return nil
-}
-
-func useTemplate[T any](t string, data T) (string, error) {
-	tpl, err := template.New("chat").Parse(t)
-	if err != nil {
-		return "", fmt.Errorf("error loading template: %w", err)
-	}
-	var promptBuffer bytes.Buffer
-
-	if err = tpl.Execute(&promptBuffer, data); err != nil {
-		return "", fmt.Errorf("error executing template: %w", err)
-	}
-
-	return promptBuffer.String(), nil
 }

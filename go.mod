@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/chromedp/chromedp v0.10.0
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/ollama/ollama v0.3.11
 	github.com/pkoukk/tiktoken-go v0.1.7
@@ -25,7 +26,6 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

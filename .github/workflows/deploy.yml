@@ -25,6 +25,12 @@ jobs:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           LOG_LEVEL: ${{ vars.LOG_LEVEL }}
           DISCORD_BOT_TOKEN: ${{secrets.DISCORD_BOT_TOKEN}}
+          LLM_URL: ${{secrets.LLM_URL}}
+          DEZGO_TOKEN: ${{secrets.DEZGO_TOKEN}}
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_DB: ${{secrets.POSTGRES_DB}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+
         run: |
           docker compose up --build hammy -d
 
