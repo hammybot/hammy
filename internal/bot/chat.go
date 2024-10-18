@@ -64,7 +64,7 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	}
 	prefix := fmt.Sprintf("%s#%s said:", s.State.User.Username, s.State.User.Discriminator)
 	resp, _ = strings.CutPrefix(resp, prefix)
-
+	resp = strings.Trim(resp, "\"")
 	return &discordgo.MessageSend{
 		Content: resp,
 	}, nil
