@@ -38,10 +38,6 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 				Value: "Challenge someone with `what are the odds {challenge}` for a fun game!",
 			},
 		},
-		Footer: &discordgo.MessageEmbedFooter{
-			Text:    "'Need help? Just type !wato",
-			IconURL: "https://i.imgur.com/DbxSPZy.png",
-		},
 	}
 
 	_, err := s.ChannelMessageSendEmbed(m.ChannelID, helpMessage)
