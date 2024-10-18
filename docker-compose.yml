@@ -3,8 +3,7 @@ services:
     image: postgres
     restart: always
     shm_size: 128mb
-    networks:
-      - hammy
+    container_name: postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -21,8 +20,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    networks:
-      - hammy
     restart: unless-stopped
     environment:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
@@ -32,10 +29,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-networks:
-  hammy:
-    driver: bridge
 
 volumes:
   db:
