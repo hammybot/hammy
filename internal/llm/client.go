@@ -71,7 +71,7 @@ func (s *syncClientImpl) chat(ctx context.Context, modelName string, latest stri
 	for _, opt := range opts {
 		opt(options)
 	}
-	s.logger.Debug(fmt.Sprintf("%v", history))
+	s.logger.Info(fmt.Sprintf("%v", history))
 
 	//todo: this token count really isnt accurate because of the template
 	history = filterMessages(maxTokens-getTokenCount(latest)-15, history)
@@ -91,7 +91,7 @@ func (s *syncClientImpl) chat(ctx context.Context, modelName string, latest stri
 		return "", err
 	}
 
-	s.logger.Debug("using prompt", "prompt", prompt)
+	s.logger.Info("using prompt", "prompt", prompt)
 	req := &api.GenerateRequest{
 		Model:     modelName,
 		Prompt:    prompt,
