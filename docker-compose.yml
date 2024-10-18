@@ -1,5 +1,5 @@
 services:
-  database:
+  db:
     image: postgres
     restart: always
     shm_size: 128mb
@@ -9,10 +9,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - db:/var/lib/postgresql/data
-      # Initialize the database on first create
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+#    volumes:
+#      #- db:/var/lib/postgresql/data
+#      # Initialize the database on first create
+#      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 5432:5432
 
@@ -37,6 +37,6 @@ networks:
   hammy:
     driver: bridge
 
-volumes:
-  db:
-    driver: local
+#volumes:
+#  hammydb:
+#    driver: local
