@@ -37,7 +37,7 @@ func NewConfig() Config {
 	viper.SetDefault("OLLAMA_KEEP_ALIVE", 15*time.Minute)
 	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
 	_ = viper.BindEnv("DEZGO_TOKEN")
-	viper.SetDefault("POSTGRES_HOST", "localhost")
+	_ = viper.BindEnv("POSTGRES_HOST")
 	viper.SetDefault("POSTGRES_PORT", "5432")
 	_ = viper.BindEnv("POSTGRES_DB")
 	_ = viper.BindEnv("POSTGRES_USER")

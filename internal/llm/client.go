@@ -64,7 +64,7 @@ func newSyncClientImpl(cfg config.Config, logger *slog.Logger) (*syncClientImpl,
 }
 
 // Chat chats with the model given some list of messages, messages must be in desc order by time
-func (s *syncClientImpl) chat(ctx context.Context, modelName string, msgs []string, opts ...Options) (string, error) {
+func (s *syncClientImpl) chat(ctx context.Context, modelName string, latest string, history []string, opts ...Options) (string, error) {
 	stream := false
 	options := map[string]any{}
 
@@ -72,9 +72,8 @@ func (s *syncClientImpl) chat(ctx context.Context, modelName string, msgs []stri
 		opt(options)
 	}
 
-	latest := msgs[len(msgs)-1]
 	//todo: this token count really isnt accurate because of the template
-	history := filterMessages(maxTokens-getTokenCount(latest)-15, msgs[:len(msgs)-1])
+	history = filterMessages(maxTokens-getTokenCount(latest)-15, history)
 
 	data := struct {
 		History       string
@@ -89,6 +88,7 @@ func (s *syncClientImpl) chat(ctx context.Context, modelName string, msgs []stri
 		return "", err
 	}
 
+	s.logger.Debug("using prompt", "prompt", prompt)
 	req := &api.GenerateRequest{
 		Model:     modelName,
 		Prompt:    prompt,

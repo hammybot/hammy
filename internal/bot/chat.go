@@ -57,14 +57,27 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	if err != nil {
 		return nil, err
 	}
+	bm, bn := s.State.User.Mention(), s.State.User.Username
+	sanitize := func(msg *discordgo.Message) {
+		if msg.Content != "" {
+			msg.Content = strings.ReplaceAll(msg.Content, bm, bn)
+		}
+	}
 
-	resp, err := c.llm.Chat(ctx, msgs)
+	for _, msg := range msgs {
+		sanitize(msg)
+	}
+	sanitize(m.Message)
+
+	//remove latest from history
+	msgs = msgs[:len(msgs)-1]
+	resp, err := c.llm.Chat(ctx, m.Message, msgs)
 	if err != nil {
 		return nil, err
 	}
 	prefix := fmt.Sprintf("%s#%s said:", s.State.User.Username, s.State.User.Discriminator)
 	resp, _ = strings.CutPrefix(resp, prefix)
-
+	resp = strings.Trim(resp, "\"")
 	return &discordgo.MessageSend{
 		Content: resp,
 	}, nil

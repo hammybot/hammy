@@ -48,6 +48,10 @@ func RunBot(l *slog.Logger, session *discordgo.Session, cfg config.Config) error
 
 	defer dbpool.Close()
 
+	if pErr := dbpool.Ping(context.Background()); pErr != nil {
+		return fmt.Errorf("error pinging database: %w", pErr)
+	}
+
 	registerBotCommands(logger, session, model, cfg, dbpool)
 	_ = session.UpdateStatusComplex(discordgo.UpdateStatusData{
 		AFK: false,
