@@ -72,6 +72,10 @@ func extractTemp(message string) (float32, error) {
 }
 
 func isAuthorAdmin(s *discordgo.Session, m discordgo.Message) bool {
+	if m.Member == nil || m.Member.Roles == nil {
+		return false
+	}
+
 	return slices.ContainsFunc(m.Member.Roles, func(rId string) bool {
 		roles, err := s.GuildRoles(m.GuildID)
 		if err != nil {
