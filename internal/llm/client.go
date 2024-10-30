@@ -208,9 +208,9 @@ func (s *syncClientImpl) configure(ctx context.Context) error {
 		return err
 	}
 
-	if pErr := s.pullModels(ctx, []string{promptGeneratorModel}); pErr != nil {
-		return pErr
-	}
+	//if pErr := s.pullModels(ctx, []string{promptGeneratorModel}); pErr != nil {
+	//	return pErr
+	//}
 
 	s.logger.Info("configure done")
 	return nil
