@@ -62,7 +62,7 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	idx := LastIndex(msgs, func(msg *discordgo.Message) bool {
 		return msg.Content == resetMessage && msg.Author.Bot
 	})
-
+	c.logger.Info("latest message in slice", "msg", msgs[len(msgs)-1])
 	if idx != -1 {
 		msgs = msgs[idx+1:]
 	}
