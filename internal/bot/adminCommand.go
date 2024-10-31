@@ -36,8 +36,11 @@ func (a *adminCommand) Name() string {
 
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	//todo: add more admin commands
-
-	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content)) || resetContextCommand.MatchString(m.Content)
+	if resetContextCommand.MatchString(m.Content) {
+		return true //anyone should be allowed to do this
+	}
+	
+	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content))
 }
 
 func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {

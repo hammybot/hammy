@@ -37,6 +37,10 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 				Name:  "WATO (What Are The Odds)",
 				Value: "Challenge someone with `what are the odds {challenge}` for a fun game!",
 			},
+			{
+				Name:  "reset context",
+				Value: "type `resetContext` to help me get back on track if I lost my way! This will clear my memory of previous commands / conversation",
+			},
 		},
 	}
 
