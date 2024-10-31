@@ -14,6 +14,9 @@ import (
 
 var tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
 var getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
+var resetContextCommand = regexp.MustCompile(`resetContext`)
+
+const resetMessage = "context reset to here!"
 
 type adminCommand struct {
 	logger *slog.Logger
@@ -34,11 +37,12 @@ func (a *adminCommand) Name() string {
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
 	//todo: add more admin commands
 
-	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content))
+	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content)) || resetContextCommand.MatchString(m.Content)
 }
 
 func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
-	if tempCommand.MatchString(m.Content) {
+	switch {
+	case tempCommand.MatchString(m.Content):
 		temp, err := extractTemp(m.Content)
 		if err != nil {
 			return nil, err
@@ -49,12 +53,18 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("temperature set to %.2f", temp),
 		}, nil
-	} else if getSettingsCommand.MatchString(m.Content) {
+	case getSettingsCommand.MatchString(m.Content):
 		settings := a.llm.GetSettings()
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("current settings\n```json\n%+v\n```", settings),
 		}, nil
+	case resetContextCommand.MatchString(m.Content):
+		//this is a flag we will search for in chat to truncate messages
+		return &discordgo.MessageSend{
+			Content: resetMessage,
+		}, nil
 	}
+
 	return nil, fmt.Errorf("could not match admin command")
 }
 

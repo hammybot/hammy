@@ -57,6 +57,16 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	if err != nil {
 		return nil, err
 	}
+
+	//search for the most recent resetContext confirmation and trim history
+	idx := LastIndex(msgs, func(msg *discordgo.Message) bool {
+		return msg.Content == resetMessage && msg.Author.Bot
+	})
+
+	if idx != -1 {
+		msgs = msgs[idx+1:]
+	}
+
 	bm, bn := s.State.User.Mention(), s.State.User.Username
 	sanitize := func(msg *discordgo.Message) {
 		if msg.Content != "" {
@@ -81,4 +91,14 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	return &discordgo.MessageSend{
 		Content: resp,
 	}, nil
+}
+
+func LastIndex[T any](slice []T, predicate func(T) bool) int {
+	lastIndex := -1
+	for i, v := range slice {
+		if predicate(v) {
+			lastIndex = i
+		}
+	}
+	return lastIndex
 }
