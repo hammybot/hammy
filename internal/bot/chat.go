@@ -59,12 +59,12 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	}
 
 	//search for the most recent resetContext confirmation and trim history
-	idx := LastIndex(msgs, func(msg *discordgo.Message) bool {
+	idx := slices.IndexFunc(msgs, func(msg *discordgo.Message) bool {
 		return msg.Content == resetMessage && msg.Author.Bot
 	})
-	c.logger.Info("latest message in slice", "msg", msgs[len(msgs)-1])
+
 	if idx != -1 {
-		msgs = msgs[idx+1:]
+		msgs = msgs[:idx] //msgs are newest to oldest
 	}
 
 	bm, bn := s.State.User.Mention(), s.State.User.Username
@@ -91,14 +91,4 @@ func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *disc
 	return &discordgo.MessageSend{
 		Content: resp,
 	}, nil
-}
-
-func LastIndex[T any](slice []T, predicate func(T) bool) int {
-	lastIndex := -1
-	for i, v := range slice {
-		if predicate(v) {
-			lastIndex = i
-		}
-	}
-	return lastIndex
 }
