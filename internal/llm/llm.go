@@ -11,11 +11,12 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"text/template"
 	"time"
 )
 
-//go:embed analyze.tpl
+//go:embed tpl/analyze.tpl
 var analyzeTemplate string
 
 const (
@@ -24,14 +25,16 @@ const (
 
 // Settings are returned in GetSettings call for checking various settings
 type Settings struct {
-	Temperature float32
+	Temperature        float32
+	EnhanceImagePrompt bool
 }
 
 type LLM struct {
-	logger      *slog.Logger
-	ollama      ollamaClient
-	temperature float32
-	dezgoToken  string
+	logger             *slog.Logger
+	ollama             ollamaClient
+	Temperature        float32
+	dezgoToken         string
+	EnhanceImagePrompt atomic.Bool
 }
 
 type ollamaClient interface {
@@ -56,12 +59,15 @@ func NewLLM(logger *slog.Logger, cfg config.Config) (*LLM, error) {
 		return nil, fmt.Errorf("get temperature error: %w", err)
 	}
 
-	return &LLM{
+	llm := &LLM{
 		logger:      logger,
 		ollama:      client,
-		temperature: temp,
+		Temperature: temp,
 		dezgoToken:  cfg.DezgoToken,
-	}, nil
+	}
+
+	llm.EnhanceImagePrompt.Store(cfg.EnhanceImagePrompt)
+	return llm, nil
 }
 
 func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.MessageCreate) (string, error) {
@@ -90,7 +96,7 @@ func (l *LLM) Analyze(ctx context.Context, url string, message *discordgo.Messag
 		l.logger.Info("llm call completed", "elapsed", elapsed)
 	}(t)
 
-	return l.ollama.generate(ctx, hammy, prompt, WithTemperature(l.temperature))
+	return l.ollama.generate(ctx, hammy, prompt, WithTemperature(l.Temperature))
 }
 
 func (l *LLM) Chat(ctx context.Context, m *discordgo.Message, history []*discordgo.Message) (string, error) {
@@ -102,16 +108,13 @@ func (l *LLM) Chat(ctx context.Context, m *discordgo.Message, history []*discord
 	}
 
 	latest := formatMessage(m)
-	return l.ollama.chat(ctx, hammy, latest, msgs, WithTemperature(l.temperature))
-}
-
-func (l *LLM) SetTemperature(temp float32) {
-	l.temperature = temp
+	return l.ollama.chat(ctx, hammy, latest, msgs, WithTemperature(l.Temperature))
 }
 
 func (l *LLM) GetSettings() Settings {
 	return Settings{
-		Temperature: l.temperature,
+		Temperature:        l.Temperature,
+		EnhanceImagePrompt: l.EnhanceImagePrompt.Load(),
 	}
 }
 

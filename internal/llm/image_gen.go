@@ -3,6 +3,7 @@ package llm
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,11 +11,13 @@ import (
 	"time"
 )
 
+//go:embed tpl/image_gen.tpl
+var enhanceImagePromptTemplate string
+
 // take text, send to stable-diffusion prompt generator. Take that response and send to dezgo
 const (
-	promptGeneratorModel = "impactframes/llama3_ifai_sd_prompt_mkr_q4km" //"brxce/stable-diffusion-prompt-generator:latest"
-	dezgoUrl             = "https://api.dezgo.com/"
-	dezgoModel           = "stablediffusion_2_1_512px"
+	dezgoUrl   = "https://api.dezgo.com/"
+	dezgoModel = "nightmareshaper"
 )
 
 type ImageRequestPayload struct {
@@ -27,19 +30,31 @@ type ImageRequestPayload struct {
 func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
+	enhance := l.EnhanceImagePrompt.Load()
+	// Attempt to use the template for the enhanced image prompt
+	tmpl, err := useTemplate(enhanceImagePromptTemplate, struct{ Prompt string }{Prompt: prompt})
+	if err != nil {
+		l.logger.Error("error generating image prompt template", "error", err)
+		enhance = false
+	}
 
-	// Attempt to generate enriched prompt
-	//ePrompt, err := l.ollama.generate(ctx, promptGeneratorModel, prompt)
-	//if err != nil {
-	//	l.logger.Warn("error generating enriched prompt, falling back to original", "original prompt", prompt, "error", err)
-	//	ePrompt = prompt
-	//} else {
-	//	l.logger.Info("generated enriched prompt", "original prompt", prompt, "enriched prompt", ePrompt)
-	//}
+	// Set initial prompt as default
+	finalPrompt := prompt
+
+	// Generate enriched prompt if enhancement is enabled
+	if enhance {
+		ePrompt, eErr := l.ollama.generate(ctx, hammy, tmpl)
+		if eErr != nil {
+			l.logger.Warn("error generating enriched prompt, using original prompt", "original prompt", prompt, "error", eErr)
+		} else {
+			l.logger.Info("generated enriched prompt", "original prompt", prompt, "enriched prompt", ePrompt)
+			finalPrompt = ePrompt
+		}
+	}
 
 	payload := ImageRequestPayload{
 		Steps:  30,
-		Prompt: prompt, //ePrompt,
+		Prompt: finalPrompt,
 		Model:  dezgoModel,
 		Format: "jpg",
 	}

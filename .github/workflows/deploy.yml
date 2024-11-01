@@ -30,6 +30,7 @@ jobs:
           POSTGRES_DB: ${{vars.POSTGRES_DB}}
           POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
           POSTGRES_HOST: ${{vars.POSTGRES_HOST}}
+          ENHANCE_IMAGE_PROP_MODE: ${{vars.ENHANCE_IMAGE_PROP_MODE}}
 
         run: |
           docker compose up --build -d

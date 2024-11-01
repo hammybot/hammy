@@ -15,6 +15,7 @@ import (
 var tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
 var getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
 var resetContextCommand = regexp.MustCompile(`resetContext`)
+var enhancedImagePrompt = regexp.MustCompile(`setEnhancedImage (?P<enable>true|false)`)
 
 const resetMessage = "context reset to here!"
 
@@ -35,11 +36,10 @@ func (a *adminCommand) Name() string {
 }
 
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
-	//todo: add more admin commands
-	if resetContextCommand.MatchString(m.Content) {
+	if resetContextCommand.MatchString(m.Content) || enhancedImagePrompt.MatchString(m.Content) {
 		return true //anyone should be allowed to do this
 	}
-	
+
 	return isAuthorAdmin(s, m) && (tempCommand.MatchString(m.Content) || getSettingsCommand.MatchString(m.Content))
 }
 
@@ -51,13 +51,16 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 			return nil, err
 		}
 
-		a.llm.SetTemperature(temp)
+		a.llm.Temperature = temp
 
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("temperature set to %.2f", temp),
 		}, nil
 	case getSettingsCommand.MatchString(m.Content):
-		settings := a.llm.GetSettings()
+		settings := llm.Settings{
+			EnhanceImagePrompt: a.llm.EnhanceImagePrompt.Load(),
+			Temperature:        a.llm.Temperature,
+		}
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("current settings\n```json\n%+v\n```", settings),
 		}, nil
@@ -65,6 +68,20 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 		//this is a flag we will search for in chat to truncate messages
 		return &discordgo.MessageSend{
 			Content: resetMessage,
+		}, nil
+	case enhancedImagePrompt.MatchString(m.Content):
+		matches := enhancedImagePrompt.FindStringSubmatch(m.Content)
+		if len(matches) != 2 {
+			return nil, fmt.Errorf("could not extract enable bool")
+		}
+		enhance, err := strconv.ParseBool(matches[1])
+		if err != nil {
+			return nil, fmt.Errorf("could not extract enable bool")
+		}
+
+		a.llm.EnhanceImagePrompt.Store(enhance)
+		return &discordgo.MessageSend{
+			Content: fmt.Sprintf("enhance model prompt set to %t", enhance),
 		}, nil
 	}
 

@@ -10,13 +10,14 @@ import (
 )
 
 type Config struct {
-	LlmUrl          string        `mapstructure:"LLM_URL"`
-	ResponseEmoji   string        `mapstructure:"RESPONSE_EMOJI"`
-	LogLevel        int           `mapstructure:"LOG_LEVEL"`
-	DiscordLogLevel int           `mapstructure:"DISCORD_LOG_LEVEL"`
-	BotToken        string        `mapstructure:"DISCORD_BOT_TOKEN"`
-	KeepAlive       time.Duration `mapstructure:"OLLAMA_KEEP_ALIVE"`
-	DezgoToken      string        `mapstructure:"DEZGO_TOKEN"`
+	LlmUrl             string        `mapstructure:"LLM_URL"`
+	ResponseEmoji      string        `mapstructure:"RESPONSE_EMOJI"`
+	LogLevel           int           `mapstructure:"LOG_LEVEL"`
+	DiscordLogLevel    int           `mapstructure:"DISCORD_LOG_LEVEL"`
+	BotToken           string        `mapstructure:"DISCORD_BOT_TOKEN"`
+	KeepAlive          time.Duration `mapstructure:"OLLAMA_KEEP_ALIVE"`
+	DezgoToken         string        `mapstructure:"DEZGO_TOKEN"`
+	EnhanceImagePrompt bool          `mapstructure:"ENHANCE_IMAGE_PROMPT"`
 
 	DBHost     string `mapstructure:"POSTGRES_HOST"`
 	DBPort     string `mapstructure:"POSTGRES_PORT"`
@@ -43,6 +44,7 @@ func NewConfig() Config {
 	_ = viper.BindEnv("POSTGRES_USER")
 	_ = viper.BindEnv("POSTGRES_PASSWORD")
 	viper.SetDefault("DISABLE_LLM", false)
+	viper.SetDefault("ENHANCE_IMAGE_PROMPT", true)
 	viper.AutomaticEnv()
 
 	err := viper.Unmarshal(&cfg)

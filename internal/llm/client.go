@@ -20,7 +20,7 @@ import (
 //go:embed models/hammy.modelfile
 var hammyModelFile string
 
-//go:embed chat.tpl
+//go:embed tpl/chat.tpl
 var chatTmpl string
 
 // max = llama 3.1 - system prompt from modelfile - num_ctx from modelfile
