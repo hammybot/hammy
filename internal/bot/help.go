@@ -42,8 +42,8 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 				Value: "type `resetContext` to help me get back on track if I lost my way! This will clear my memory of previous commands / conversation",
 			},
 			{
-				Name:  "change image prompt enhancement",
-				Value: "Hammy will add flavor to the art prompt if you allow it. Use `setEnhancedImage {true or false}` to enable or disable image prompt enhancement.",
+				Name:  "Enable / disable image prompt enhancement",
+				Value: "Hammy will add flavor to the art prompt if you allow it. Use `setImageEnhancement {on or off}` to enable or disable image prompt enhancement.",
 			},
 		},
 	}

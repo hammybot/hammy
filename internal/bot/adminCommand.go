@@ -15,7 +15,7 @@ import (
 var tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
 var getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
 var resetContextCommand = regexp.MustCompile(`resetContext`)
-var enhancedImagePrompt = regexp.MustCompile(`setEnhancedImage (?P<enable>true|false)`)
+var imageEnhancementCommand = regexp.MustCompile(`setImageEnhancement (?P<enable>on|off)`)
 
 const resetMessage = "context reset to here!"
 
@@ -36,7 +36,7 @@ func (a *adminCommand) Name() string {
 }
 
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
-	if resetContextCommand.MatchString(m.Content) || enhancedImagePrompt.MatchString(m.Content) {
+	if resetContextCommand.MatchString(m.Content) || imageEnhancementCommand.MatchString(m.Content) {
 		return true //anyone should be allowed to do this
 	}
 
@@ -69,19 +69,17 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 		return &discordgo.MessageSend{
 			Content: resetMessage,
 		}, nil
-	case enhancedImagePrompt.MatchString(m.Content):
-		matches := enhancedImagePrompt.FindStringSubmatch(m.Content)
+	case imageEnhancementCommand.MatchString(m.Content):
+		matches := imageEnhancementCommand.FindStringSubmatch(m.Content)
 		if len(matches) != 2 {
 			return nil, fmt.Errorf("could not extract enable bool")
 		}
-		enhance, err := strconv.ParseBool(matches[1])
-		if err != nil {
-			return nil, fmt.Errorf("could not extract enable bool")
-		}
+
+		enhance := matches[1] == "on"
 
 		a.llm.EnhanceImagePrompt.Store(enhance)
 		return &discordgo.MessageSend{
-			Content: fmt.Sprintf("enhance model prompt set to `%t`", enhance),
+			Content: fmt.Sprintf("image prompt enhacement set to `%s`", matches[1]),
 		}, nil
 	}
 
