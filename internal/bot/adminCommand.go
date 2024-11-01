@@ -81,7 +81,7 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 
 		a.llm.EnhanceImagePrompt.Store(enhance)
 		return &discordgo.MessageSend{
-			Content: fmt.Sprintf("enhance model prompt set to %t", enhance),
+			Content: fmt.Sprintf("enhance model prompt set to `%t`", enhance),
 		}, nil
 	}
 
