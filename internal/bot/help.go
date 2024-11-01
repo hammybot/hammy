@@ -34,16 +34,16 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 				Value: "Use `!art {your idea}` to generate unique artwork!",
 			},
 			{
+				Name:  "Enable / disable image prompt enhancement",
+				Value: "Use `setImageEnhancement {on or off}` to change Hammy's ability to enhance your art prompt!",
+			},
+			{
 				Name:  "WATO (What Are The Odds)",
 				Value: "Challenge someone with `what are the odds {challenge}` for a fun game!",
 			},
 			{
-				Name:  "reset context",
+				Name:  "Reset Context",
 				Value: "type `resetContext` to help me get back on track if I lost my way! This will clear my memory of previous commands / conversation",
-			},
-			{
-				Name:  "Enable / disable image prompt enhancement",
-				Value: "Hammy will add flavor to the art prompt if you allow it. Use `setImageEnhancement {on or off}` to enable or disable image prompt enhancement.",
 			},
 		},
 	}
