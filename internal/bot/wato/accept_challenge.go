@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var validNumberRegex = regexp.MustCompile(`[-]?\d+(,\d+)*`)
+var validNumberRegex = regexp.MustCompile(`^[-]?\d+(,\d+)*$`)
 
 // acceptChallengeCommand contains a text command that looks for a mention and a number,
 // checks for any challenges that the user may be responding to. If an active challenge is
