@@ -2,10 +2,12 @@ package wato
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -50,12 +52,32 @@ func (c *declineChallengeCommand) CanActivate(s *discordgo.Session, m discordgo.
 		return false
 	}
 
-	return strings.Contains(strings.ToLower(m.Content), `decline`)
+	validDecline := strings.Contains(strings.ToLower(m.Content), `decline`)
+
+	if !validDecline {
+		return false
+	}
+
+	_, err = getActiveChallenge(c.dbPool, m.Author.ID)
+	if err != nil {
+		// Either there is no active challenge, or we don't know if they have an active challenge
+		// because the database is having issues. Just log if needed and return false.
+		if !errors.Is(err, pgx.ErrNoRows) {
+			c.logger.Error("error getting active challenge from database", "err", err)
+		}
+		return false
+	}
+
+	return true
 }
 
 func (c *declineChallengeCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
 	activeChallenge, err := getActiveChallenge(c.dbPool, m.Author.ID)
 	if err != nil {
+		// No active challenge, return with no error
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

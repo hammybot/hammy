@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var validNumberRegex = regexp.MustCompile(`[-]?\d+(,\d+)*`)
+var validNumberRegex = regexp.MustCompile(`^[-]?\d+(,\d+)*$`)
 
 // acceptChallengeCommand contains a text command that looks for a mention and a number,
 // checks for any challenges that the user may be responding to. If an active challenge is
@@ -61,10 +62,39 @@ func (c *acceptChallengeCommand) CanActivate(s *discordgo.Session, m discordgo.M
 		return false
 	}
 
-	return validNumberRegex.Match([]byte(removeMentionsFromMessage(&m)))
+	validAccept := validNumberRegex.Match([]byte(removeMentionsFromMessage(&m)))
+
+	if !validAccept {
+		return false
+	}
+
+	_, err = getActiveChallenge(c.dbPool, m.Author.ID)
+	if err != nil {
+		// Either there is no active challenge, or we don't know if they have an active challenge
+		// because the database is having issues. Just log if needed and return false.
+		if !errors.Is(err, pgx.ErrNoRows) {
+			c.logger.Error("error getting active challenge from database", "err", err)
+		}
+		return false
+	}
+
+	return true
 }
 
 func (c *acceptChallengeCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
+	activeChallenge, err := getActiveChallenge(c.dbPool, m.Author.ID)
+	if err != nil {
+		// No active challenge, return with no error
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if activeChallenge.Status != pendingAccept || activeChallenge.ChallengedID != m.Author.ID {
+		return nil, nil
+	}
+
 	numbersFound := validNumberRegex.FindAllString(removeMentionsFromMessage(m.Message), -1)
 	if len(numbersFound) < 1 {
 		return nil, nil
@@ -79,15 +109,6 @@ func (c *acceptChallengeCommand) Handler(_ context.Context, s *discordgo.Session
 		vEmbed := validationErrEmbed(fmt.Sprintf("<@%s> Your bet needs to be between 1 and 9,223,372,036,854,775,808", m.Author.ID))
 		_, err := s.ChannelMessageSendEmbed(m.ChannelID, vEmbed)
 		return nil, err
-	}
-
-	activeChallenge, err := getActiveChallenge(c.dbPool, m.Author.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if activeChallenge.Status != pendingAccept || activeChallenge.ChallengedID != m.Author.ID {
-		return nil, nil
 	}
 
 	err = setBetLimit(c.dbPool, *activeChallenge, betLimit)

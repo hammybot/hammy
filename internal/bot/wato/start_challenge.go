@@ -193,5 +193,5 @@ func removeMentionsFromMessage(m *discordgo.Message) string {
 		).Replace(content)
 	}
 
-	return content
+	return strings.TrimSpace(content)
 }
