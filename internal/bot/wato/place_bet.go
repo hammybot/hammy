@@ -2,12 +2,14 @@ package wato
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -47,13 +49,37 @@ func (c *placeBetCommand) CanActivate(s *discordgo.Session, m discordgo.Message)
 		return false
 	}
 
-	return validNumberRegex.Match([]byte(m.Content))
+	validBet := validNumberRegex.Match([]byte(m.Content))
+
+	if !validBet {
+		return false
+	}
+
+	_, err = getActiveChallenge(c.dbPool, m.Author.ID)
+	if err != nil {
+		// Either there is no active challenge, or we don't know if they have an active challenge
+		// because the database is having issues. Just log if needed and return false.
+		if !errors.Is(err, pgx.ErrNoRows) {
+			c.logger.Error("error getting active challenge from database", "err", err)
+		}
+		return false
+	}
+
+	return true
 }
 
 func (c *placeBetCommand) Handler(_ context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {
 	activeChallenge, err := getActiveChallenge(c.dbPool, m.Author.ID)
 	if err != nil {
+		// No active challenge, return with no error
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
+	}
+
+	if activeChallenge.Status != pendingBets || activeChallenge.BetLimit == nil {
+		return nil, nil
 	}
 
 	numbersFound := validNumberRegex.FindAllString(m.Content, -1)
@@ -64,10 +90,6 @@ func (c *placeBetCommand) Handler(_ context.Context, s *discordgo.Session, m *di
 	bet, err := strconv.Atoi(strings.Replace(numbersFound[0], ",", "", -1))
 	if err != nil {
 		return nil, err
-	}
-
-	if activeChallenge.Status != pendingBets || activeChallenge.BetLimit == nil {
-		return nil, nil
 	}
 
 	if bet <= 1 || bet > *activeChallenge.BetLimit {
