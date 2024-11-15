@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -16,15 +17,17 @@ var enhanceImagePromptTemplate string
 
 // take text, send to stable-diffusion prompt generator. Take that response and send to dezgo
 const (
-	dezgoUrl   = "https://api.dezgo.com/"
-	dezgoModel = "nightmareshaper"
+	dezgoUrl = "https://api.dezgo.com/"
 )
 
+var dezgoModels = []string{"nightmareshaper", "deliberate_2", "deliberate_2"} //I want it to be more likely deliberated for now
+
 type ImageRequestPayload struct {
-	Steps  int    `json:"steps"`
-	Prompt string `json:"prompt"`
-	Model  string `json:"model"`
-	Format string `json:"format"`
+	Steps    int     `json:"steps"`
+	Prompt   string  `json:"prompt"`
+	Model    string  `json:"model"`
+	Format   string  `json:"format"`
+	Guidance float32 `json:"guidance"`
 }
 
 func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) {
@@ -55,7 +58,7 @@ func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) 
 	payload := ImageRequestPayload{
 		Steps:  30,
 		Prompt: finalPrompt,
-		Model:  dezgoModel,
+		Model:  dezgoModels[rand.Intn(len(dezgoModels)-1)],
 		Format: "jpg",
 	}
 

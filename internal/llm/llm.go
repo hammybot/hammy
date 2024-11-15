@@ -27,6 +27,7 @@ const (
 type Settings struct {
 	Temperature        float32
 	EnhanceImagePrompt bool
+	Guidance           float32
 }
 
 type LLM struct {
@@ -35,6 +36,7 @@ type LLM struct {
 	Temperature        float32
 	dezgoToken         string
 	EnhanceImagePrompt atomic.Bool
+	Guidance           float32
 }
 
 type ollamaClient interface {
@@ -64,6 +66,7 @@ func NewLLM(logger *slog.Logger, cfg config.Config) (*LLM, error) {
 		ollama:      client,
 		Temperature: temp,
 		dezgoToken:  cfg.DezgoToken,
+		Guidance:    3.4,
 	}
 
 	llm.EnhanceImagePrompt.Store(cfg.EnhanceImagePrompt)
@@ -115,6 +118,7 @@ func (l *LLM) GetSettings() Settings {
 	return Settings{
 		Temperature:        l.Temperature,
 		EnhanceImagePrompt: l.EnhanceImagePrompt.Load(),
+		Guidance:           l.Guidance,
 	}
 }
 

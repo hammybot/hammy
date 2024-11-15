@@ -48,8 +48,8 @@ func (c *chatCommand) CanActivate(s *discordgo.Session, m discordgo.Message) boo
 		return rand.Intn(10) == 0
 	}
 
-	//otherwise 5% chance of responding
-	return rand.Intn(20) == 0
+	//otherwise 4% chance of responding
+	return rand.Intn(25) == 0
 }
 
 func (c *chatCommand) Handler(ctx context.Context, s *discordgo.Session, m *discordgo.MessageCreate) (*discordgo.MessageSend, error) {

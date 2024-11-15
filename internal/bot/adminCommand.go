@@ -3,19 +3,19 @@ package bot
 import (
 	"context"
 	"fmt"
+	"github.com/austinvalle/hammy/internal/llm"
+	"github.com/bwmarrin/discordgo"
 	"log/slog"
 	"regexp"
 	"slices"
 	"strconv"
-
-	"github.com/austinvalle/hammy/internal/llm"
-	"github.com/bwmarrin/discordgo"
 )
 
 var tempCommand = regexp.MustCompile(`setTemperature (?P<temp>\d\.?\d?)`)
 var getSettingsCommand = regexp.MustCompile(`.*getSettings*`)
 var resetContextCommand = regexp.MustCompile(`resetContext`)
 var imageEnhancementCommand = regexp.MustCompile(`setImageEnhancement (?P<enable>on|off)`)
+var setGuidanceCommand = regexp.MustCompile(`setGuidance (?P<guidance>\d\.?\d?)`)
 
 const resetMessage = "context reset to here!"
 
@@ -36,7 +36,7 @@ func (a *adminCommand) Name() string {
 }
 
 func (a *adminCommand) CanActivate(s *discordgo.Session, m discordgo.Message) bool {
-	if resetContextCommand.MatchString(m.Content) || imageEnhancementCommand.MatchString(m.Content) {
+	if resetContextCommand.MatchString(m.Content) || imageEnhancementCommand.MatchString(m.Content) || setGuidanceCommand.MatchString(m.Content) {
 		return true //anyone should be allowed to do this
 	}
 
@@ -80,6 +80,21 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 		a.llm.EnhanceImagePrompt.Store(enhance)
 		return &discordgo.MessageSend{
 			Content: fmt.Sprintf("image prompt enhacement set to `%s`", matches[1]),
+		}, nil
+	case setGuidanceCommand.MatchString(m.Content):
+		matches := setGuidanceCommand.FindStringSubmatch(m.Content)
+		if len(matches) != 2 {
+			return nil, fmt.Errorf("could not extract guidance bool")
+		}
+
+		guidance, err := strconv.ParseFloat(matches[1], 32)
+		if err != nil {
+			return nil, fmt.Errorf("could not extract guidance bool")
+		}
+		a.llm.Guidance = float32(guidance)
+
+		return &discordgo.MessageSend{
+			Content: fmt.Sprintf("guidance set to %.2f", guidance),
 		}, nil
 	}
 

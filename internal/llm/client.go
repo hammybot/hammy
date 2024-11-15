@@ -208,10 +208,6 @@ func (s *syncClientImpl) configure(ctx context.Context) error {
 		return err
 	}
 
-	//if pErr := s.pullModels(ctx, []string{promptGeneratorModel}); pErr != nil {
-	//	return pErr
-	//}
-
 	s.logger.Info("configure done")
 	return nil
 }
@@ -230,25 +226,6 @@ func (s *syncClientImpl) createModels(ctx context.Context, reqs []*api.CreateReq
 		wg.Wait()
 		if err != nil {
 			return fmt.Errorf("error creating %s model: %w", req.Model, err)
-		}
-	}
-
-	return nil
-}
-
-func (s *syncClientImpl) pullModels(ctx context.Context, modelNames []string) error {
-	stream := false
-	wg := sync.WaitGroup{}
-
-	for _, model := range modelNames {
-		req := &api.PullRequest{Model: model, Stream: &stream}
-		wg.Add(1)
-		s.logger.Info("pulling model", "model", req.Model)
-		err := s.c.Pull(ctx, req, s.handleProgress(ctx, &wg, model))
-
-		wg.Wait()
-		if err != nil {
-			return fmt.Errorf("error pulling %s model: %w", req.Model, err)
 		}
 	}
 
