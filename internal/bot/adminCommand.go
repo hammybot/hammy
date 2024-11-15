@@ -57,12 +57,8 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 			Content: fmt.Sprintf("temperature set to %.2f", temp),
 		}, nil
 	case getSettingsCommand.MatchString(m.Content):
-		settings := llm.Settings{
-			EnhanceImagePrompt: a.llm.EnhanceImagePrompt.Load(),
-			Temperature:        a.llm.Temperature,
-		}
 		return &discordgo.MessageSend{
-			Content: fmt.Sprintf("current settings\n```json\n%+v\n```", settings),
+			Content: fmt.Sprintf("current settings\n```json\n%+v\n```", a.llm.GetSettings()),
 		}, nil
 	case resetContextCommand.MatchString(m.Content):
 		//this is a flag we will search for in chat to truncate messages
