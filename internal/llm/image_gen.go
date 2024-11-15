@@ -23,11 +23,12 @@ const (
 var dezgoModels = []string{"nightmareshaper", "deliberate_2", "deliberate_2"} //I want it to be more likely deliberated for now
 
 type ImageRequestPayload struct {
-	Steps    int     `json:"steps"`
-	Prompt   string  `json:"prompt"`
-	Model    string  `json:"model"`
-	Format   string  `json:"format"`
-	Guidance float32 `json:"guidance"`
+	Steps          int     `json:"steps"`
+	Prompt         string  `json:"prompt"`
+	Model          string  `json:"model"`
+	Format         string  `json:"format"`
+	Guidance       float32 `json:"guidance"`
+	NegativePrompt string  `json:"negative_prompt"`
 }
 
 func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) {
@@ -56,10 +57,11 @@ func (l *LLM) GenerateImage(ctx context.Context, prompt string) ([]byte, error) 
 	}
 
 	payload := ImageRequestPayload{
-		Steps:  30,
-		Prompt: finalPrompt,
-		Model:  dezgoModels[rand.Intn(len(dezgoModels)-1)],
-		Format: "jpg",
+		Steps:          30,
+		Prompt:         finalPrompt,
+		Model:          dezgoModels[rand.Intn(len(dezgoModels)-1)],
+		Format:         "jpg",
+		NegativePrompt: "tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs, disfigured, deformed, body out of frame, blurry, bad anatomy, blurred, watermark, grainy, signature, cut off, draft",
 	}
 
 	jsonData, err := json.Marshal(payload)
