@@ -91,6 +91,11 @@ func (a *adminCommand) Handler(_ context.Context, s *discordgo.Session, m *disco
 		if err != nil {
 			return nil, fmt.Errorf("could not extract guidance bool")
 		}
+		if guidance > 20 || guidance < -20 {
+			return &discordgo.MessageSend{
+				Content: fmt.Sprintf("guidance must be between -20 and 20"),
+			}, nil
+		}
 		a.llm.Guidance = float32(guidance)
 
 		return &discordgo.MessageSend{

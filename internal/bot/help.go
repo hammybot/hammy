@@ -34,7 +34,13 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 				Value: "Use `!art {your idea}` to generate unique artwork!",
 			},
 			{
-				Name:  "Enable / disable image prompt enhancement",
+				Name: "Tune image generation",
+				Value: "Use `setImageEnhancement {on or off}` to change Hammy's ability to enhance your art prompt! " +
+					"Additionally you can use `setGuidance 3.4` or similar to change the guidance used for image generation. " +
+					"6-10 is going to be less artifacts but more strict`",
+			},
+			{
+				Name:  "Adjust Image G",
 				Value: "Use `setImageEnhancement {on or off}` to change Hammy's ability to enhance your art prompt!",
 			},
 			{
