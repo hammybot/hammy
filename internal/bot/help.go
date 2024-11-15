@@ -40,10 +40,6 @@ func (c *helpCommand) Handler(_ context.Context, s *discordgo.Session, m *discor
 					"6-10 is going to be less artifacts but more strict`",
 			},
 			{
-				Name:  "Adjust Image G",
-				Value: "Use `setImageEnhancement {on or off}` to change Hammy's ability to enhance your art prompt!",
-			},
-			{
 				Name:  "WATO (What Are The Odds)",
 				Value: "Challenge someone with `what are the odds {challenge}` for a fun game!",
 			},
