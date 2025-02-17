@@ -35,7 +35,7 @@ func NewConfig() Config {
 	viper.SetDefault("DISCORD_LOG_LEVEL", discordgo.LogWarning)
 	viper.SetDefault("LOG_LEVEL", slog.LevelDebug)
 	viper.SetDefault("LLM_URL", "http://localhost:11434")
-	viper.SetDefault("OLLAMA_KEEP_ALIVE", 15*time.Minute)
+	viper.SetDefault("OLLAMA_KEEP_ALIVE", 5*time.Minute)
 	_ = viper.BindEnv("DISCORD_BOT_TOKEN")
 	_ = viper.BindEnv("DEZGO_TOKEN")
 	_ = viper.BindEnv("POSTGRES_HOST")
